@@ -1,0 +1,56 @@
+# Docker setup in Debian
+# Reference - https://www.puzzlr.org/install-docker-on-a-google-cloud-virtual-machine/
+sudo apt update
+sudo apt install --yes apt-transport-https ca-certificates curl gnupg2 software-properties-common
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+sudo apt update
+sudo apt install --yes docker-ce
+
+# To allow docker commands from non-root users
+sudo usermod -aG docker $USER
+logout
+
+# Install Node.js for developer dashboard
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# FaunaDB setup with Docker images
+# Reference - https://gist.github.com/CaryBourgeois/ebe08f8819fc1904523e360746a94bae
+
+# Fetch image
+docker pull fauna/faunadb
+
+# Test image
+docker run fauna/faunadb --help
+
+# Create a Docker network
+docker network create fauna-network
+
+# Initialize the cluster
+docker run --network=fauna-network -d --rm --name faunadb_node0 -p 8443:8443 fauna/faunadb
+
+# Login to the node to find the internal IP used
+docker exec -it faunadb_node0 /bin/bash
+
+# Check status and get the internal IP
+# Can be found under the Address column
+/faunadb/bin/faunadb-admin -k secret status
+
+# Start second node and join it to the cluster
+# --run command is used to start the node, but not initialize it
+docker run --network=fauna-network -d --rm --name faunadb_node1 -p 8444:8443 fauna/faunadb --run
+docker exec -it faunadb_node1 /bin/bash
+/faunadb/bin/faunadb-admin join -r NoDC <ip-address-here>
+
+# Repeat for third node
+docker run --network=fauna-network -d --rm --name faunadb_node2 -p 8445:8443 fauna/faunadb --run
+docker exec -it faunadb_node2 /bin/bash
+/faunadb/bin/faunadb-admin join -r NoDC <ip-address-here>
+
+# Run the developer dashboard
+# Login to the cluster using port http://<public-ip-address>:8443 and 'secret' as they key
+git clone https://github.com/fauna/dashboard
+cd dashboard/
+npm install
+nohup node start > dashboard-output.log &
