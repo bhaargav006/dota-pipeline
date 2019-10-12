@@ -1,0 +1,3 @@
+API_URL = 'https://api.steampowered.com'
+GET_MATCH_HISTORY = API_URL + '/IDOTA2Match_570/GetMatchHistory/V001/'
+KEY = '068992B5AAB6A8CE6AE7FAC277B96BF4'
