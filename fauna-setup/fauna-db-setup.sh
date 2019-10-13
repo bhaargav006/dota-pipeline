@@ -28,10 +28,10 @@ docker run fauna/faunadb --help
 docker network create fauna-network
 
 # Initialize the cluster
-docker run --network=fauna-network -d --rm --name faunadb_node0 -p 8443:8443 fauna/faunadb
+docker run --network=fauna-network -d --rm --name faunadb_node1 -v /var/fauna/fauna-1:/var/lib/faunadb -v /var/fauna-log/fauna-log-1:/var/log/faunadb -p 8443:8443 fauna/faunadb
 
 # Login to the node to find the internal IP used
-docker exec -it faunadb_node0 /bin/bash
+docker exec -it faunadb_node1 /bin/bash
 
 # Check status and get the internal IP
 # Can be found under the Address column
@@ -39,14 +39,19 @@ docker exec -it faunadb_node0 /bin/bash
 
 # Start second node and join it to the cluster
 # --run command is used to start the node, but not initialize it
-docker run --network=fauna-network -d --rm --name faunadb_node1 -p 8444:8443 fauna/faunadb --run
-docker exec -it faunadb_node1 /bin/bash
-/faunadb/bin/faunadb-admin join -r NoDC <ip-address-here>
+docker run --network=fauna-network -d --rm --name faunadb_node2 -v /var/fauna/fauna-2:/var/lib/faunadb -v /var/fauna-log/fauna-log-2:/var/log/faunadb -p 8444:8443 fauna/faunadb --run
+docker exec -it faunadb_node2 /bin/bash
+/faunadb/bin/faunadb-admin join -r NoDC 172.19.0.2
 
 # Repeat for third node
-docker run --network=fauna-network -d --rm --name faunadb_node2 -p 8445:8443 fauna/faunadb --run
-docker exec -it faunadb_node2 /bin/bash
-/faunadb/bin/faunadb-admin join -r NoDC <ip-address-here>
+docker run --network=fauna-network -d --rm --name faunadb_node3 -v /var/fauna/fauna-3:/var/lib/faunadb -v /var/fauna-log/fauna-log-3:/var/log/faunadb -p 8445:8443 fauna/faunadb --run
+docker exec -it faunadb_node3 /bin/bash
+/faunadb/bin/faunadb-admin join -r NoDC 172.19.0.2
+
+# Repeat for fourth node
+docker run --network=fauna-network -d --rm --name faunadb_node4 -v /var/fauna/fauna-4:/var/lib/faunadb -v /var/fauna-log/fauna-log-4:/var/log/faunadb -p 8446:8443 fauna/faunadb --run
+docker exec -it faunadb_node4 /bin/bash
+/faunadb/bin/faunadb-admin join -r NoDC 172.19.0.2
 
 # Run the developer dashboard
 # Login to the cluster using port http://<public-ip-address>:8443 and 'secret' as they key
@@ -54,3 +59,7 @@ git clone https://github.com/fauna/dashboard
 cd dashboard/
 npm install
 nohup node start > dashboard-output.log &
+
+# Database Key
+# Your key's secret is:
+# fnADYyzhs4ACAP5YEnUaT1H-Dn_BnvxfIW_t5ZHz
