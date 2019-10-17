@@ -18,7 +18,7 @@ try:
 
         match_ids = list(match_ids_map)
         match_ids.sort()
-        last_match_id = match_ids[-1]
+        last_match_id = match_ids[0]
 
         logging.info(f'Successfully written {len(matches)} records')
 
