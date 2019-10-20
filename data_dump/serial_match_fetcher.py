@@ -1,7 +1,7 @@
 import requests, time, logging
 from constants.constants import GET_MATCH_HISTORY, KEY_1, DATA_ROOT, LOG_ROOT
 
-logging.basicConfig(filename=DATA_ROOT+'serial_match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
+logging.basicConfig(filename=LOG_ROOT+'serial_match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 last_match_id = None
 
 while True:
@@ -17,7 +17,7 @@ while True:
                 match_ids.sort()
                 last_match_id = match_ids[0]
                 params['start_at_match_id'] = last_match_id
-                f = open(LOG_ROOT+'serial_matches.log', 'a+')
+                f = open(DATA_ROOT+'serial_matches.log', 'a+')
                 f.write("\n")
                 f.write("\n".join(map(lambda t: str(t), match_ids)))
                 f.close()
