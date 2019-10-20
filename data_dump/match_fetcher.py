@@ -1,7 +1,7 @@
 import requests, time, logging
-from constants.constants import GET_MATCH_HISTORY, KEY_1
+from constants.constants import GET_MATCH_HISTORY, KEY_1, DATA_ROOT, LOG_ROOT
 
-logging.basicConfig(filename='match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
+logging.basicConfig(filename=LOG_ROOT+'match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 
 while True:
     logging.info(f'Getting match history')
@@ -10,7 +10,7 @@ while True:
         if response.status_code == 200:
             try:
                 response_json = response.json()
-                f = open('matches.log', 'a+')
+                f = open(DATA_ROOT+'matches.log', 'a+')
                 f.write("\n")
                 matches = response_json['result']['matches']
                 f.write("\n".join(map(lambda t: str(t['match_id']), matches)))

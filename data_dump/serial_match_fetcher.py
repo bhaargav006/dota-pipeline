@@ -25,6 +25,8 @@ while True:
                 logging.info(f'Successfully written {len(matches)} records')
             except ValueError as v:
                 logging.error(f'Decoding JSON has failed: {str(v)}')
+            except Exception as e:
+                logging.error(f'Error occured but with response {response_json}')
         else:
             logging.error(f'Response status code: {response.status_code}')
     except Exception as e:
