@@ -36,6 +36,7 @@ docker exec -it faunadb_node1 /bin/bash
 # Check status and get the internal IP
 # Can be found under the Address column
 /faunadb/bin/faunadb-admin -k secret status
+/faunadb/bin/faunadb-admin -k secret remove
 
 # Start second node and join it to the cluster
 # --run command is used to start the node, but not initialize it
