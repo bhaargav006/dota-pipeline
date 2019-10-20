@@ -3,10 +3,11 @@ from constants.constants import GET_MATCH_HISTORY, KEY_1, DATA_ROOT, LOG_ROOT
 
 logging.basicConfig(filename=LOG_ROOT+'serial_match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 last_match_id = None
+params = {'key': KEY_1, 'skill': 3, 'min_players': 10}
 
 while True:
     logging.info(f'Getting match history')
-    params = {'key': KEY_1, 'skill': 3, 'min_players': 10}
+    
     try:
         response = requests.get(GET_MATCH_HISTORY, params=params)
         if response.status_code == 200:

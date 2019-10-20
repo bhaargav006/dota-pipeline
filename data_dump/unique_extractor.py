@@ -1,8 +1,9 @@
 import calendar, time, logging, os
 
+from constants.constants import DATA_ROOT, LOG_ROOT
 from google.cloud import pubsub_v1
 
-logging.basicConfig(filename='unique_extractor.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
+logging.basicConfig(filename=LOG_ROOT+'unique_extractor.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 logging.info(f'Extracting unique values')
 
 matchSet = set()
@@ -17,15 +18,15 @@ futures = dict()
 
 try:
     ts = calendar.timegm(time.gmtime())
-    os.rename('matches-new.log', 'matches-new-' + str(ts) + '.log') 
+    os.rename(DATA_ROOT + 'serial_matches.log', DATA_ROOT + 'serial_matches_' + str(ts) + '.log') 
 
     matchList = []
-    with open('matches-new-' + str(ts) + '.log') as f:
+    with open(DATA_ROOT + 'serial_matches_' + str(ts) + '.log') as f:
         matchList = f.readlines()
 
     matchSet = set(matchList)
 
-    with open("unique-matches.txt","a") as f:
+    with open(DATA_ROOT + 'unique-matches.txt',"a") as f:
         for item in matchSet:
             f.write("%s\n" % item)
 
@@ -34,8 +35,8 @@ try:
             logging.info(f'Published message ' + str(item) + ' to queue')
     
 except Exception as e:
-    logging.error(f'Error occurred {str(e)}, retrying')
-    with open("matches-new.log","a") as f:
+    logging.error(f'Error occurred {str(e)}, adding match ids to original file')
+    with open(DATA_ROOT + 'serial_matches.log','a') as f:
         for item in matchSet:
             f.write("%s\n" % item)
-    logging.error(f'Added match ids to original file')
+    logging.debug(f'Added match ids to original file')
