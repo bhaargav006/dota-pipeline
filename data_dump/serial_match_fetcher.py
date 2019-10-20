@@ -15,13 +15,13 @@ while True:
                 matches = response_json['result']['matches']
                 match_ids = [match['match_id'] for match in matches]
                 match_ids.sort()
+                last_match_id = match_ids[0]
+                params['start_at_match_id'] = last_match_id
                 f = open('serial_matches.log', 'a+')
                 f.write("\n")
-                params['start_at_match_id'] = last_match_id
-                last_match_id = match_ids[0]
-                logging.info(f'Successfully written {len(matches)} records')
                 f.write("\n".join(map(lambda t: str(t), match_ids)))
                 f.close()
+                logging.info(f'Successfully written {len(matches)} records')
             except ValueError as v:
                 logging.error(f'Decoding JSON has failed: {str(v)}')
         else:
