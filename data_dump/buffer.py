@@ -24,6 +24,5 @@ def follow(thefile):
 
 if __name__ == '__main__':
     for value in operateQueue():
-        print(f'calling match details with {value}')
         if getMatchDetails(value) != 200:
             matchIDs.put(value)
