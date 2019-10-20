@@ -1,2 +1,8 @@
 */**/__pycache__/
 */**.log
+.idea/
+.DS_Store
+venv/
+data_dump/access-log
+big_data.pem
+.idea/*
