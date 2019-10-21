@@ -1,7 +1,7 @@
 import logging
 import requests
 
-from constants.constants import GET_MATCH_DETAILS, KEY_2
+from library.constants import GET_MATCH_DETAILS, KEY_2
 
 
 logging.basicConfig(filename='match_details_fetcher.log', level=logging.DEBUG,

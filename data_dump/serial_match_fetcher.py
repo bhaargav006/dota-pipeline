@@ -1,11 +1,12 @@
-import requests, time, logging, datetime
-from constants.constants import KEY_4, DATA_ROOT, LOG_ROOT, GET_MATCH_HISTORY_BY_SEQ_NUM
+import requests, time, logging, datetime, sys
+from library.constants import KEY_4, DATA_ROOT, LOG_ROOT, GET_MATCH_HISTORY_BY_SEQ_NUM
+from library.helpers import is_truthy
 
 logging.basicConfig(filename=LOG_ROOT+'serial_match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 last_match_sequence = 4137117145
 params = {'key': KEY_4, 'skill': 3, 'min_players': 10, 'start_at_match_seq_num': last_match_sequence}
-DRY_RUN = True
-SLEEP_TIME = 0.5
+DRY_RUN = is_truthy(sys.argv[0])
+SLEEP_TIME = float(sys.argv[1])
 
 
 MODE = 'DRY MODE' if DRY_RUN else 'LIVE MODE'
