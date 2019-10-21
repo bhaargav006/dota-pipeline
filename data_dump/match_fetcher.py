@@ -1,5 +1,5 @@
 import requests, time, logging
-from constants.constants import GET_MATCH_HISTORY, KEY_1, DATA_ROOT, LOG_ROOT
+from library.constants import GET_MATCH_HISTORY, KEY_1, DATA_ROOT, LOG_ROOT
 
 logging.basicConfig(filename=LOG_ROOT+'match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 

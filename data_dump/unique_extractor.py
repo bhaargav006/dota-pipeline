@@ -1,6 +1,6 @@
 import calendar, time, logging, os
 
-from constants.constants import DATA_ROOT, LOG_ROOT
+from library.constants import DATA_ROOT, LOG_ROOT
 from google.cloud import pubsub_v1
 
 logging.basicConfig(filename=LOG_ROOT+'unique_extractor.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
