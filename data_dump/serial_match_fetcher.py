@@ -5,12 +5,14 @@ from library.helpers import is_truthy
 logging.basicConfig(filename=LOG_ROOT+'serial_match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 last_match_sequence = 4137117145
 params = {'key': KEY_4, 'skill': 3, 'min_players': 10, 'start_at_match_seq_num': last_match_sequence}
-DRY_RUN = is_truthy(sys.argv[0])
-SLEEP_TIME = float(sys.argv[1])
+LIVE_RUN = is_truthy(sys.argv[1])
+SLEEP_TIME = float(sys.argv[2])
 
 
-MODE = 'DRY MODE' if DRY_RUN else 'LIVE MODE'
-logging.info(f'SERIAL MATCH FETCHER RUNNING IN {MODE}')
+MODE = 'LIVE MODE' if LIVE_RUN else 'DRY MODE'
+RUN_INFO = f'SERIAL MATCH FETCHER RUNNING IN {MODE}, WITH SLEEP TIME AS {SLEEP_TIME}'
+logging.info(RUN_INFO)
+print(RUN_INFO)
 while True:
     logging.info(f'Getting match history')
     t1 = datetime.datetime.now()
@@ -25,14 +27,14 @@ while True:
                 sequence_ids.sort()
                 last_match_sequence = sequence_ids[-1]
                 params['start_at_match_seq_num'] = last_match_sequence
-                if not DRY_RUN:
+                if LIVE_RUN:
                     f = open(DATA_ROOT+'serial_matches.log', 'a+')
                     f.write("\n")
                     f.write("\n".join(map(lambda t: str(t), match_ids)))
                     f.close()
                     logging.info(f'Successfully written {len(matches)} records')
                 else:
-                    print(f'Running in DRY mode, data that would be written: {" ".join(map(lambda t: str(t), match_ids))}')
+                    print(" ".join(map(lambda t: str(t), match_ids)))
             except ValueError as v:
                 logging.error(f'Decoding JSON has failed: {str(v)}')
             except Exception as e:
