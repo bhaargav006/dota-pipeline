@@ -2,15 +2,16 @@ import requests, time, logging, datetime, sys
 from library.constants import KEY_4, DATA_ROOT, LOG_ROOT, GET_MATCH_HISTORY_BY_SEQ_NUM
 from library.helpers import is_truthy
 
+# first argument: live run, second arg: sleep time, third: last_match_sequence
 logging.basicConfig(filename=LOG_ROOT+'serial_match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
-last_match_sequence = 4137117145
-params = {'key': KEY_4, 'skill': 3, 'min_players': 10, 'start_at_match_seq_num': last_match_sequence}
 LIVE_RUN = is_truthy(sys.argv[1])
 SLEEP_TIME = float(sys.argv[2])
+last_match_sequence = int(sys.argv[3])
+params = {'key': KEY_4, 'skill': 3, 'min_players': 10, 'start_at_match_seq_num': last_match_sequence}
 
 
 MODE = 'LIVE MODE' if LIVE_RUN else 'DRY MODE'
-RUN_INFO = f'SERIAL MATCH FETCHER RUNNING IN {MODE}, WITH SLEEP TIME AS {SLEEP_TIME}'
+RUN_INFO = f'SERIAL MATCH FETCHER RUNNING IN {MODE}, WITH SLEEP TIME AS {SLEEP_TIME} AND MATCH SEQUENCE {last_match_sequence}'
 logging.info(RUN_INFO)
 print(RUN_INFO)
 while True:
