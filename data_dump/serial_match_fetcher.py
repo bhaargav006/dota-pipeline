@@ -2,7 +2,7 @@ import requests, time, logging
 from constants.constants import KEY_4, DATA_ROOT, LOG_ROOT, GET_MATCH_HISTORY_BY_SEQ_NUM
 
 logging.basicConfig(filename=LOG_ROOT+'serial_match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
-last_match_sequence = 4137617145
+last_match_sequence = 4137117145
 params = {'key': KEY_4, 'skill': 3, 'min_players': 10, 'start_at_match_seq_num': last_match_sequence}
 
 while True:
