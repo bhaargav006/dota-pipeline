@@ -1,5 +1,5 @@
 import requests, time, logging
-from constants.constants import GET_MATCH_HISTORY, KEY_4, DATA_ROOT, LOG_ROOT, GET_MATCH_HISTORY_BY_SEQ_NUM
+from constants.constants import KEY_4, DATA_ROOT, LOG_ROOT, GET_MATCH_HISTORY_BY_SEQ_NUM
 
 logging.basicConfig(filename=LOG_ROOT+'serial_match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 last_match_sequence = 4137617145
@@ -7,7 +7,6 @@ params = {'key': KEY_4, 'skill': 3, 'min_players': 10, 'start_at_match_seq_num':
 
 while True:
     logging.info(f'Getting match history')
-    
     try:
         response = requests.get(GET_MATCH_HISTORY_BY_SEQ_NUM, params=params)
         if response.status_code == 200:
@@ -19,7 +18,6 @@ while True:
                 sequence_ids.sort()
                 last_match_sequence = sequence_ids[-1]
                 params['start_at_match_seq_num'] = last_match_sequence
-                print(match_ids)
                 f = open(DATA_ROOT+'serial_matches.log', 'a+')
                 f.write("\n")
                 f.write("\n".join(map(lambda t: str(t), match_ids)))
