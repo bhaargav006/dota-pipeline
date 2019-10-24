@@ -1,6 +1,6 @@
 import logging, requests, datetime
 
-from library.constants import GET_MATCH_DETAILS, DATABASE_URL, KEY_2
+from library.constants import GET_MATCH_DETAILS, DATABASE_URL
 
 from faunadb import query as q
 from faunadb.objects import Ref
@@ -10,10 +10,10 @@ logging.basicConfig(filename='match_details_fetcher.log', level=logging.DEBUG, f
 
 client = FaunaClient(secret="secret", domain=DATABASE_URL, scheme="http", port="8443")
 
-def getMatchDetails(matchID, processName):
+def getMatchDetails(matchID, processName, key):
     try:
         startTime = datetime.datetime.now()
-        response = requests.get(GET_MATCH_DETAILS, params={'match_id': matchID, 'key': KEY_2})
+        response = requests.get(GET_MATCH_DETAILS, params={'match_id': matchID, 'key': key})
         endTime = datetime.datetime.now()
 
         if response.status_code == 200:

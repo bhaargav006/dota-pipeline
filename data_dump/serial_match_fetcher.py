@@ -4,19 +4,21 @@ from library.helpers import is_truthy
 
 # first argument: live run, second arg: sleep time, third: last_match_sequence
 logging.basicConfig(filename=LOG_ROOT+'serial_match_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
+
 LIVE_RUN = is_truthy(sys.argv[1])
 SLEEP_TIME = float(sys.argv[2])
 last_match_sequence = int(sys.argv[3])
-params = {'key': KEY_4, 'skill': 3, 'min_players': 10, 'start_at_match_seq_num': last_match_sequence}
 
+params = {'key': KEY_4, 'skill': 3, 'min_players': 10, 'start_at_match_seq_num': last_match_sequence}
 
 MODE = 'LIVE MODE' if LIVE_RUN else 'DRY MODE'
 RUN_INFO = f'SERIAL MATCH FETCHER RUNNING IN {MODE}, WITH SLEEP TIME AS {SLEEP_TIME} AND MATCH SEQUENCE {last_match_sequence}'
 logging.info(RUN_INFO)
-print(RUN_INFO)
+
 while True:
     logging.info(f'Getting match history')
     t1 = datetime.datetime.now()
+    
     try:
         response = requests.get(GET_MATCH_HISTORY_BY_SEQ_NUM, params=params)
         if response.status_code == 200:

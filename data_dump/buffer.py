@@ -3,7 +3,6 @@ from match_details_fetcher import getMatchDetails
 
 matchIDs = queue.Queue()
 
-
 def operateQueue():
     logfile = open("access-log", "r")
     loglines = follow(logfile)
