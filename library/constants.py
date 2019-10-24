@@ -1,5 +1,6 @@
 API_URL = 'https://api.steampowered.com'
 DATA_ROOT = '../data/'
+DATA_BACKUP_ROOT = '../data_backup/'
 LOG_ROOT = '../log/'
 GET_MATCH_HISTORY = API_URL + '/IDOTA2Match_570/GetMatchHistory/V001/'
 GET_MATCH_HISTORY_BY_SEQ_NUM = API_URL + '/IDOTA2Match_570/GetMatchHistoryBySequenceNum/V001/'
