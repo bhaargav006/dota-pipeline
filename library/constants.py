@@ -3,7 +3,7 @@ DATABASE_URL = 'ec2-52-32-20-76.us-west-2.compute.amazonaws.com'
 DATA_ROOT = '../data/'
 LOG_ROOT = '../log/'
 
-NUM_MESSAGES = 1
+NUM_MESSAGES = 5
 
 GET_MATCH_HISTORY = API_URL + '/IDOTA2Match_570/GetMatchHistory/V001/'
 GET_MATCH_HISTORY_BY_SEQ_NUM = API_URL + '/IDOTA2Match_570/GetMatchHistoryBySequenceNum/V001/'
