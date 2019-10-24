@@ -6,7 +6,7 @@ from faunadb import query as q
 from faunadb.objects import Ref
 from faunadb.client import FaunaClient
 
-logging.basicConfig(filename='match_details_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
+logging.basicConfig(filename=LOG_ROOT+'match_details_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 
 client = FaunaClient(secret="secret", domain=DATABASE_URL, scheme="http", port="8443")
 
@@ -36,23 +36,26 @@ def getMatchDetails(matchID, processName, key):
     return
 
 def writeDataToDatabase(responseJson, matchID):
+    logging.debug(f'Persisting {responseJson} to database')
+
     client.query(
         q.create(
-            q.ref(q.collection("posts"), matchID),
+            q.ref(q.collection("matches"), matchID),
             responseJson
         )
     )
+    logging.debug(f'Added matchID {matchID} to database')
 
 def addProvenance(responseJson, startTime, endTime, processName):
     responseJson['provenance'] = {}
     responseJson['provenance']['dataFetchStage'] = {}
 
-    responseJson['provenance']['dataFetchStage']['startTime'] = startTime
-    responseJson['provenance']['dataFetchStage']['apiCallDuration'] = endTime - startTime
+    responseJson['provenance']['dataFetchStage']['startTime'] = str(startTime)
+    responseJson['provenance']['dataFetchStage']['apiCallDuration'] = str(endTime - startTime)
     responseJson['provenance']['dataFetchStage']['processedBy'] = processName
 
 def writeDataToFile(responseJson):
-    f = open('match_details.log', 'a+')
+    f = open(DATA_ROOT+'match_details.log', 'a+')
     f.write("\n")
     f.write(str(responseJson))
     f.close()
