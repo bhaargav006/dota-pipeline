@@ -25,7 +25,7 @@ with open(DATA_ROOT + 'serial_matches_' + ts + '.log') as f:
 
 match_list = list(filter(None, [v.rstrip() for v in match_list]))
 
-with open(DATA_ROOT + f'unique-matches.txt', "a") as f:
+with open(DATA_ROOT + f'unique_serial_matches.log', "a") as f:
     for item in match_list:
         try:
             f.write("%s\n" % item)
@@ -36,6 +36,6 @@ with open(DATA_ROOT + f'unique-matches.txt', "a") as f:
             logging.error(f'Error occurred {str(e)}, adding remaining match ids to original file')
             with open(DATA_ROOT + 'serial_matches_failed_transactions.log', 'a') as t:
                 t.write("%s\n" % item)
-            logging.debug(f'Added match id to the original file')
+            logging.debug(f'Added match id to the serial_matches_failed_transactions.log')
 
 logging.info(f'Process ID: {ts}: Process completed successfully.')
