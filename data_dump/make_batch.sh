@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-PROJECT_ROOT="$HOME/raiprabh/dota-pipeline"
+PROJECT_ROOT="$HOME/dota-pipeline"
 
 cd "$PROJECT_ROOT/data_dump" || return
 PROCESS_NAME=$(date +%s)
