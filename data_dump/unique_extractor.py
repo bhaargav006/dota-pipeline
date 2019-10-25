@@ -1,4 +1,4 @@
-import calendar, time, logging, os
+import calendar, time, logging, sys
 
 from library.constants import DATA_ROOT, LOG_ROOT, DATA_BACKUP_ROOT, PROJECT_ID, TOPIC_NAME
 from google.cloud import pubsub_v1
@@ -7,17 +7,17 @@ logging.basicConfig(filename=LOG_ROOT+'unique_extractor.log', level=logging.DEBU
 
 match_list = set()
 
+# Command line arguement - fetch the matchID to process
+fileName = sys.argv[1]
+
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
-
-futures = dict()
 
 ts = str(calendar.timegm(time.gmtime()))
 
 logging.info(f'Process ID: {ts}: Extracting unique values')
-os.rename(DATA_ROOT + 'serial_matches.log', DATA_ROOT + 'serial_matches_' + ts + '.log')
 
-with open(DATA_ROOT + 'serial_matches_' + ts + '.log') as f:
+with open(DATA_ROOT + fileName) as f:
     match_list = f.readlines()
 
 match_list = list(filter(None, [v.rstrip() for v in match_list]))
