@@ -1,6 +1,7 @@
 import calendar, time, logging, os, json, sys
-from match_details_fetcher import getMatchDetails
-from constants import LOG_ROOT, NUM_MESSAGES, PROJECT_ID, SUBSCRIPTION_NAME
+from data_dump.match_details_fetcher import getMatchDetails
+from library.constants import LOG_ROOT, NUM_MESSAGES, PROJECT_ID, SUBSCRIPTION_NAME
+from library.helpers import log_with_process_name
 
 from google.cloud import pubsub_v1
 
@@ -10,23 +11,25 @@ PROCESS_NAME = sys.argv[1]
 KEY = sys.argv[2]
 
 logging.basicConfig(filename=LOG_ROOT + 'detail_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
-logging.info(f'Fetching unique match details')
+logging.info(log_with_process_name(PROCESS_NAME, 'Started'))
 
 subscriber = pubsub_v1.SubscriberClient()
 subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_NAME)
 
 while True:
     try:
+        logging.info(log_with_process_name(PROCESS_NAME, 'Fetching unique match details'))
         response = subscriber.pull(subscription_path, max_messages=NUM_MESSAGES)
 
         for message in response.received_messages:
-            logging.debug(f'Calling matchDetails with matchID: {message.message.data}')
-            getMatchDetails(message.message.data.decode("utf-8") , PROCESS_NAME, KEY)
+            match_id = message.message.data.decode("utf-8")
+            logging.debug(log_with_process_name(PROCESS_NAME, f'Calling matchDetails with matchID: {match_id}'))
+            getMatchDetails(match_id, PROCESS_NAME, KEY)
 
             ack_list = []
             ack_list.append(message.ack_id)
             subscriber.acknowledge(subscription_path, ack_list)
-            logging.info(f'Acknowledged: {message.ack_id}')
+            logging.info(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
 
             time.sleep(1)
 

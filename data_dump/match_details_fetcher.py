@@ -1,7 +1,7 @@
 import logging, requests, datetime
 
 from library.constants import GET_MATCH_DETAILS, DATABASE_URL, LOG_ROOT, DATA_ROOT
-
+from library.helpers import log_with_process_name
 from faunadb import query as q
 from faunadb.objects import Ref
 from faunadb.client import FaunaClient
@@ -23,30 +23,30 @@ def getMatchDetails(matchID, processName, key):
 
                 writeDataToFile(responseJson)
                 addProvenance(responseJson, startTime, endTime, processName)
-                writeDataToDatabase(responseJson, matchID)
+                writeDataToDatabase(responseJson, matchID, processName)
 
-                logging.info(f'Successfully written match details for match {matchID}')
+                logging.info(log_with_process_name(processName, f'Successfully written match details for match {matchID}'))
 
             except ValueError as v:
-                logging.error(f'Decoding JSON has failed: {str(v)}')
+                logging.error(log_with_process_name(processName, f'Decoding JSON has failed: {str(v)}'))
         else:
-            logging.error(f'Response status code: {response.status_code}')
+            logging.error(log_with_process_name(processName, f'Response status code: {response.status_code}'))
         return response.status_code
     except Exception as e:
-        logging.error(f'Error occurred {str(e)}')
+        logging.error(log_with_process_name(processName, f'Error occurred {str(e)}'))
     return
 
 
-def writeDataToDatabase(responseJson, matchID):
-    logging.debug(f'Persisting {responseJson} to database')
-
+def writeDataToDatabase(responseJson, matchID, processName):
+    logging.debug(log_with_process_name(processName, f'Persisting {responseJson} to database'))
     client.query(
         q.create(
             q.ref(q.collection("matches"), matchID),
             { "data" : responseJson }
         )
     )
-    logging.debug(f'Added matchID {matchID} to database')
+    logging.debug(log_with_process_name(processName, f'Added matchID {matchID} to database'))
+
 
 def addProvenance(responseJson, startTime, endTime, processName):
     responseJson['provenance'] = {}
@@ -55,6 +55,7 @@ def addProvenance(responseJson, startTime, endTime, processName):
     responseJson['provenance']['dataFetchStage']['startTime'] = str(startTime)
     responseJson['provenance']['dataFetchStage']['apiCallDuration'] = str(endTime - startTime)
     responseJson['provenance']['dataFetchStage']['processedBy'] = processName
+
 
 def writeDataToFile(responseJson):
     f = open(DATA_ROOT+'match_details.log', 'a+')
