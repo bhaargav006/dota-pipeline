@@ -1,14 +1,10 @@
 import logging, requests, datetime
 
-<<<<<<< HEAD
-from library.constants import GET_MATCH_DETAILS, DATABASE_URL, LOG_ROOT, DATA_ROOT
+from library.constants import GET_MATCH_DETAILS, DATABASE_URL, PROJECT_ID, TOPIC_NAME, LOG_ROOT, DATA_ROOT
 from library.helpers import log_with_process_name
-=======
-from library.constants import GET_MATCH_DETAILS, DATABASE_URL, PROJECT_ID, TOPIC_NAME, LOG_ROOT
 
 from google.cloud import pubsub_v1
 
->>>>>>> Adds error handling in match-fetcher
 from faunadb import query as q
 from faunadb.objects import Ref
 from faunadb.client import FaunaClient
