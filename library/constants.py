@@ -11,6 +11,7 @@ GET_MATCH_HISTORY_BY_SEQ_NUM = API_URL + '/IDOTA2Match_570/GetMatchHistoryBySequ
 GET_MATCH_DETAILS = API_URL + '/IDOTA2Match_570/GetMatchDetails/V001/'
 
 PROJECT_ID = 'big-data-arch-and-engineering'
+TOPIC_NAME = 'match-queue'
 SUBSCRIPTION_NAME = 'sub-one'
 
 KEY_1 = '068992B5AAB6A8CE6AE7FAC277B96BF4'

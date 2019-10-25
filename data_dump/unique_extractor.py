@@ -1,17 +1,14 @@
 import calendar, time, logging, os
 
-from library.constants import DATA_ROOT, LOG_ROOT, DATA_BACKUP_ROOT
+from library.constants import DATA_ROOT, LOG_ROOT, DATA_BACKUP_ROOT, PROJECT_ID, TOPIC_NAME
 from google.cloud import pubsub_v1
 
 logging.basicConfig(filename=LOG_ROOT+'unique_extractor.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 
 match_list = set()
 
-project_id = 'big-data-arch-and-engineering'
-topic_name = 'match-queue'
-
 publisher = pubsub_v1.PublisherClient()
-topic_path = publisher.topic_path(project_id, topic_name)
+topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
 
 futures = dict()
 
