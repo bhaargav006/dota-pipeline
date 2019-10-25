@@ -1,6 +1,6 @@
 import logging, requests, datetime
 
-from library.constants import GET_MATCH_DETAILS, DATABASE_URL
+from library.constants import GET_MATCH_DETAILS, DATABASE_URL, LOG_ROOT, DATA_ROOT
 
 from faunadb import query as q
 from faunadb.objects import Ref
@@ -9,6 +9,7 @@ from faunadb.client import FaunaClient
 logging.basicConfig(filename=LOG_ROOT+'match_details_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 
 client = FaunaClient(secret="secret", domain=DATABASE_URL, scheme="http", port="8443")
+
 
 def getMatchDetails(matchID, processName, key):
     try:
@@ -35,13 +36,14 @@ def getMatchDetails(matchID, processName, key):
         logging.error(f'Error occurred {str(e)}')
     return
 
+
 def writeDataToDatabase(responseJson, matchID):
     logging.debug(f'Persisting {responseJson} to database')
 
     client.query(
         q.create(
             q.ref(q.collection("matches"), matchID),
-            responseJson
+            { "data" : responseJson }
         )
     )
     logging.debug(f'Added matchID {matchID} to database')
