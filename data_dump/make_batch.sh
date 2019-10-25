@@ -2,7 +2,6 @@
 
 PROJECT_ROOT="$HOME/dota-pipeline"
 
-export PYTHONPATH=PROJECT_ROOT
 cd "$PROJECT_ROOT/data_dump" || return
 PROCESS_NAME=$(date +%s)
 LOG_FILE="$PROJECT_ROOT/log/make_batch.log"
@@ -15,7 +14,7 @@ then
   # activating the virtual environment
   source "$HOME/env/bin/activate"
   # running the script
-  GOOGLE_APPLICATION_CREDENTIALS=big-data-arch-and-engineering-331470f88904.json python "unique_extractor.py" "$PROCESS_NAME"
+  PYTHONPATH="$PROJECT_ROOT" GOOGLE_APPLICATION_CREDENTIALS=big-data-arch-and-engineering-331470f88904.json python "unique_extractor.py" "$PROCESS_NAME"
 else
   echo "Error: Process: $PROCESS_NAME: File not found!" >> $LOG_FILE
 fi
