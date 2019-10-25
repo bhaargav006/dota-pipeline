@@ -2,6 +2,7 @@
 
 PROJECT_ROOT="$HOME/dota-pipeline"
 
+export PYTHONPATH=PROJECT_ROOT
 cd "$PROJECT_ROOT/data_dump" || return
 PROCESS_NAME=$(date +%s)
 LOG_FILE="$PROJECT_ROOT/log/make_batch.log"
