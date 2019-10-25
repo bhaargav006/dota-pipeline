@@ -6,3 +6,4 @@ venv/
 data_dump/access-log
 big_data.pem
 .idea/*
+**/node_modules
