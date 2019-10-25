@@ -1,7 +1,14 @@
 import logging, requests, datetime
 
+<<<<<<< HEAD
 from library.constants import GET_MATCH_DETAILS, DATABASE_URL, LOG_ROOT, DATA_ROOT
 from library.helpers import log_with_process_name
+=======
+from library.constants import GET_MATCH_DETAILS, DATABASE_URL, PROJECT_ID, TOPIC_NAME, LOG_ROOT
+
+from google.cloud import pubsub_v1
+
+>>>>>>> Adds error handling in match-fetcher
 from faunadb import query as q
 from faunadb.objects import Ref
 from faunadb.client import FaunaClient
@@ -9,6 +16,8 @@ from faunadb.client import FaunaClient
 logging.basicConfig(filename=LOG_ROOT+'match_details_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 
 client = FaunaClient(secret="secret", domain=DATABASE_URL, scheme="http", port="8443")
+publisher = pubsub_v1.PublisherClient()
+topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
 
 
 def getMatchDetails(matchID, processName, key):
@@ -30,7 +39,11 @@ def getMatchDetails(matchID, processName, key):
             except ValueError as v:
                 logging.error(log_with_process_name(processName, f'Decoding JSON has failed: {str(v)}'))
         else:
-            logging.error(log_with_process_name(processName, f'Response status code: {response.status_code}'))
+            logging.error(log_with_process_name(processName, f'Response status code: {response.status_code} for matchID: {matchID}'))
+
+            data = matchID
+            publisher.publish(topic_path, data=data.encode('utf-8'))
+
         return response.status_code
     except Exception as e:
         logging.error(log_with_process_name(processName, f'Error occurred {str(e)}'))

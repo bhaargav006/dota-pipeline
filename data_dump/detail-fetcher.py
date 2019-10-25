@@ -1,5 +1,6 @@
 import calendar, time, logging, os, json, sys
-from data_dump.match_details_fetcher import getMatchDetails
+
+from match_details_fetcher import getMatchDetails
 from library.constants import LOG_ROOT, NUM_MESSAGES, PROJECT_ID, SUBSCRIPTION_NAME
 from library.helpers import log_with_process_name
 
