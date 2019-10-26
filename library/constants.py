@@ -1,5 +1,5 @@
 API_URL = 'https://api.steampowered.com'
-DATABASE_URL = 'ec2-52-32-20-76.us-west-2.compute.amazonaws.com'
+DATABASE_URL = 'ec2-54-245-218-63.us-west-2.compute.amazonaws.com'
 DATA_ROOT = '../data/'
 DATA_BACKUP_ROOT = '../data_backup/'
 LOG_ROOT = '../log/'
