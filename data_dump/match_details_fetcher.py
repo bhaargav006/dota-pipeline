@@ -16,7 +16,7 @@ publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
 
 
-def getMatchDetails(matchID, processName, key):
+def getMatchDetails(matchID, processName, key, collection_name):
     try:
         startTime = datetime.datetime.now()
         response = requests.get(GET_MATCH_DETAILS, params={'match_id': matchID, 'key': key})
@@ -28,7 +28,7 @@ def getMatchDetails(matchID, processName, key):
 
                 writeDataToFile(responseJson)
                 addProvenance(responseJson, startTime, endTime, processName)
-                writeDataToDatabase(responseJson, matchID, processName)
+                writeDataToDatabase(responseJson, matchID, processName, collection_name)
 
                 logging.info(log_with_process_name(processName, f'Successfully written match details for match {matchID}'))
 
@@ -46,11 +46,11 @@ def getMatchDetails(matchID, processName, key):
     return
 
 
-def writeDataToDatabase(responseJson, matchID, processName):
+def writeDataToDatabase(responseJson, matchID, processName, collection_name):
     logging.debug(log_with_process_name(processName, f'Persisting {responseJson} to database'))
     client.query(
         q.create(
-            q.ref(q.collection("matches"), matchID),
+            q.ref(q.collection(collection_name), matchID),
             { "data" : responseJson }
         )
     )

@@ -10,6 +10,7 @@ from google.cloud import pubsub_v1
 PROCESS_NAME = sys.argv[1]
 # System Argument Key is needed - To decide which key to use
 KEY = sys.argv[2]
+collection_name = sys.argv[3]
 
 logging.basicConfig(filename=LOG_ROOT + 'detail_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 logging.info(log_with_process_name(PROCESS_NAME, 'Started'))
@@ -25,7 +26,7 @@ while True:
         for message in response.received_messages:
             match_id = message.message.data.decode("utf-8")
             logging.debug(log_with_process_name(PROCESS_NAME, f'Calling matchDetails with matchID: {match_id}'))
-            getMatchDetails(match_id, PROCESS_NAME, KEY)
+            getMatchDetails(match_id, PROCESS_NAME, KEY, collection_name)
 
             ack_list = []
             ack_list.append(message.ack_id)
