@@ -1,4 +1,4 @@
-import logging, requests, datetime
+import logging, requests, datetime, json
 
 from library.constants import GET_MATCH_DETAILS, DATABASE_URL, PROJECT_ID, TOPIC_NAME, LOG_ROOT, DATA_ROOT
 from library.helpers import log_with_process_name
@@ -67,7 +67,7 @@ def addProvenance(responseJson, startTime, endTime, processName):
 
 
 def writeDataToFile(responseJson):
-    f = open(DATA_ROOT+'match_details.log', 'a+')
+    f = open(DATA_ROOT+'match_details_new.log', 'a+')
     f.write("\n")
-    f.write(str(responseJson))
+    f.write(json.dumps(responseJson))
     f.close()
