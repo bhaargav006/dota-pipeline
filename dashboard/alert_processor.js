@@ -49,3 +49,6 @@ client.query(
     },
     (err) => console.log(err)
 )
+
+// echo "FaunaDB failed to respond to the HealthCheck ping at `date`" | mailx -v -s "FaunaDB is DOWN" suresh.siddharth@gmail.com srira048@umn.edu prabhjotsinghrai1@gmail.com mishr167@umn.edu
+// echo "Steam APIs are showing higher response time than normal" | mailx -s "Urgent: Steam API response time spike\!" suresh.siddharth@gmail.com srira048@umn.edu prabhjotsinghrai1@gmail.com mishr167@umn.edu
