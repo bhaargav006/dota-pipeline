@@ -1,4 +1,4 @@
-import logging, requests, datetime
+import logging, requests, datetime, json
 
 from library.constants import GET_MATCH_DETAILS, DATABASE_URL, PROJECT_ID, TOPIC_NAME, LOG_ROOT, DATA_ROOT
 from library.helpers import log_with_process_name
@@ -16,7 +16,7 @@ publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
 
 
-def getMatchDetails(matchID, processName, key):
+def getMatchDetails(matchID, processName, key, collection_name):
     try:
         startTime = datetime.datetime.now()
         response = requests.get(GET_MATCH_DETAILS, params={'match_id': matchID, 'key': key})
@@ -28,7 +28,7 @@ def getMatchDetails(matchID, processName, key):
 
                 writeDataToFile(responseJson)
                 addProvenance(responseJson, startTime, endTime, processName)
-                writeDataToDatabase(responseJson, matchID, processName)
+                writeDataToDatabase(responseJson, matchID, processName, collection_name)
 
                 logging.info(log_with_process_name(processName, f'Successfully written match details for match {matchID}'))
 
@@ -46,11 +46,11 @@ def getMatchDetails(matchID, processName, key):
     return
 
 
-def writeDataToDatabase(responseJson, matchID, processName):
+def writeDataToDatabase(responseJson, matchID, processName, collection_name):
     logging.debug(log_with_process_name(processName, f'Persisting {responseJson} to database'))
     client.query(
         q.create(
-            q.ref(q.collection("matches"), matchID),
+            q.ref(q.collection(collection_name), matchID),
             { "data" : responseJson }
         )
     )
@@ -67,7 +67,7 @@ def addProvenance(responseJson, startTime, endTime, processName):
 
 
 def writeDataToFile(responseJson):
-    f = open(DATA_ROOT+'match_details.log', 'a+')
+    f = open(DATA_ROOT+'match_details_new.log', 'a+')
     f.write("\n")
-    f.write(str(responseJson))
+    f.write(json.dumps(responseJson))
     f.close()

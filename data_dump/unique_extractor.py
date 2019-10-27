@@ -1,6 +1,6 @@
-import calendar, time, logging, sys
+import logging, sys
 
-from library.constants import DATA_ROOT, LOG_ROOT, DATA_BACKUP_ROOT, PROJECT_ID, TOPIC_NAME
+from library.constants import DATA_ROOT, LOG_ROOT, PROJECT_ID, TOPIC_NAME
 from google.cloud import pubsub_v1
 
 logging.basicConfig(filename=LOG_ROOT+'unique_extractor.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
@@ -13,7 +13,9 @@ fileName = sys.argv[1]
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
 
-ts = str(calendar.timegm(time.gmtime()))
+futures = dict()
+
+ts = sys.argv[1]
 
 logging.info(f'Process ID: {ts}: Extracting unique values')
 
