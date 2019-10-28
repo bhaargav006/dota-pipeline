@@ -1,4 +1,4 @@
-import logging, requests, datetime, json
+import logging, requests, datetime, json, pytz
 
 from library.constants import GET_MATCH_DETAILS, DATABASE_URL, PROJECT_ID, TOPIC_NAME, LOG_ROOT, DATA_ROOT
 from library.helpers import log_with_process_name
@@ -18,9 +18,9 @@ topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
 
 def getMatchDetails(matchID, processName, key, collection_name):
     try:
-        startTime = datetime.datetime.now()
+        startTime = pytz.utc.localize(datetime.now()) 
         response = requests.get(GET_MATCH_DETAILS, params={'match_id': matchID, 'key': key})
-        endTime = datetime.datetime.now()
+        endTime = pytz.utc.localize(datetime.now()) 
 
         if response.status_code == 200:
             try:
@@ -61,8 +61,8 @@ def addProvenance(responseJson, startTime, endTime, processName):
     responseJson['provenance'] = {}
     responseJson['provenance']['dataFetchStage'] = {}
 
-    responseJson['provenance']['dataFetchStage']['startTime'] = str(startTime)
-    responseJson['provenance']['dataFetchStage']['apiCallDuration'] = str(endTime - startTime)
+    responseJson['provenance']['dataFetchStage']['startTime'] = startTime
+    responseJson['provenance']['dataFetchStage']['apiCallDuration'] = (endTime - startTime).microseconds
     responseJson['provenance']['dataFetchStage']['processedBy'] = processName
 
 

@@ -1,6 +1,7 @@
-var faunadb = require('faunadb'),
-q = faunadb.query;
+const faunadb = require('faunadb')
+const moment = require('moment')
 
+q = faunadb.query;
 DATABASE_URL = '54.245.218.63'
 
 console.log('Node.js code is now running!')
@@ -65,6 +66,25 @@ client.query(
     )
 ).then(
     (ret) => console.log('Mean FB Time: ' + (ret / 60).toFixed(2) + ' minutes')
+)
+
+// Number of matches in the last 4 months
+var today = moment().utc().format('YYYY-MM-DDTHH:mm:ssZ');
+var beforeFourMonths = moment().subtract(4, 'months').utc().format('YYYY-MM-DDTHH:mm:ssZ');
+
+client.query(
+    q.Count(
+        q.Range(
+            q.Match(
+                q.Index("match_by_ts")
+            ), 
+            q.Time(beforeFourMonths), 
+            q.Time(today)
+        )
+    )
+).then(
+    (ret) => console.log('Number of matches in the last 4 months: ' + ret),
+    (err) => console.log(err)
 )
 
 // Count of records

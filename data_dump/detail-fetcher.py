@@ -10,6 +10,8 @@ from google.cloud import pubsub_v1
 PROCESS_NAME = sys.argv[1]
 # System Argument Key is needed - To decide which key to use
 KEY = sys.argv[2]
+
+# System Argument Collection is needed - To decide which collection to persist to
 collection_name = sys.argv[3]
 
 logging.basicConfig(filename=LOG_ROOT + 'detail_fetcher.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
@@ -33,7 +35,7 @@ while True:
             subscriber.acknowledge(subscription_path, ack_list)
             logging.info(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
 
-            time.sleep(1)
+            time.sleep(0.7)
 
     except Exception as e:
         logging.error('Exception: ', e)
