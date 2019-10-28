@@ -1,6 +1,7 @@
 import calendar, time, logging, os, json, sys, pytz
+from typing import List, Dict, Any, Union
 
-from library.constants import LOG_ROOT, NUM_MESSAGES, PROJECT_ID, DATA_SUBSCRIPTION_NAME, DATABASE_URL
+from library.constants import LOG_ROOT, NUM_MESSAGES, PROJECT_ID, DATA_SUBSCRIPTION_NAME, ITEM_SIZE, HERO_SIZE, DATABASE_URL
 from library.helpers import log_with_process_name, getIntValue, getDataFromRef
 
 from datetime import datetime
@@ -43,6 +44,65 @@ client = FaunaClient(secret="secret", domain=DATABASE_URL, scheme="http", port="
 
 #     except Exception as e:
 #         logging.error('Exception: ', e)
+
+def getItemsData(player_info):
+    items: List[int]=[]
+    for i in range(0,ITEM_SIZE):
+        items.append(0)
+    items[player_info['item_0']]+=1
+    items[player_info['item_1']]+=1
+    items[player_info['item_2']]+=1
+    items[player_info['item_3']]+=1
+    items[player_info['item_4']]+=1
+    items[player_info['item_5']]+=1
+    items[player_info['backpack_0']]+=1
+    items[player_info['backpack_1']]+=1
+    items[player_info['backpack_2']]+=1
+    return items
+
+
+def getHeroData(match_data):
+    heroes: List[Dict[str, Union[List[int], Any]]] = []
+    player_info = match_data['result']['players']
+
+    winningteam = []
+    losingteam = []
+    emptyarray = []
+
+    for i in range(0, HERO_SIZE):
+        winningteam.append(0)
+        losingteam.append(0)
+        emptyarray.append(0)
+
+    winner = match_data['result']['radiant_win']
+
+    for player in player_info:
+        if (player['player_slot'] < 5 and winner) or (player['player_slot'] > 5 and winner is False):
+            winningteam[player['hero_id']] += 1
+        else:
+            losingteam[player['hero_id']] += 1
+
+    for player in player_info:
+        hero = {}
+        hero['hero_id'] = player['hero_id']
+        hero['items_bought'] = getItemsData(player)
+
+        if (player['player_slot'] < 5 and winner) or (player['player_slot'] > 5 and winner is False):
+            hero['team_when_won'] = winningteam[:]
+            hero['team_when_lost'] = emptyarray[:]
+            hero['opponent_when_won'] = losingteam[:]
+            hero['opponent_when_lost'] = emptyarray[:]
+            hero['team_when_won'][player['hero_id']] -= 1
+
+        else:
+            hero['team_when_won'] = emptyarray[:]
+            hero['team_when_lost'] = losingteam[:]
+            hero['opponent_when_won'] = emptyarray[:]
+            hero['opponent_when_lost'] = winningteam[:]
+            hero['team_when_lost'][player['hero_id']] -= 1
+
+        heroes.append(hero)
+    return heroes
 
 def processMatchId(match_id):
     start_time = pytz.utc.localize(datetime.now()) 
