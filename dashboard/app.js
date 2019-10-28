@@ -46,7 +46,7 @@ client.query(
     (ret) => console.log('Max game duration: ' + (ret / 60).toFixed(2) + ' minutes')
 )
 
-// Max match duraion
+// Min match duraion
 client.query(
     q.Min(
         q.Match(
