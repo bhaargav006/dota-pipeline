@@ -1,81 +1,30 @@
-var faunadb = require('faunadb'),
-q = faunadb.query;
+const faunadb = require('faunadb')
+const moment = require('moment')
 
+q = faunadb.query;
 DATABASE_URL = '54.245.218.63'
 
 console.log('Node.js code is now running!')
 var client = new faunadb.Client({ secret: 'secret', domain: DATABASE_URL, scheme: 'http', port: '8443'});
 
-// ## Create index for duration of matches
-// client.query(
-//     q.CreateIndex(
-//         {
-//             name: 'matches_raw_duration', 
-//             source: q.Collection('matches_raw'), 
-//             terms: [], 
-//             values: [{ field: ['data', 'result', 'duration'] }]
-//         }
-//     )
-// ).then(
-//     (ret) => console.log(ret)
-// )
-
-// ## Create index for provenance of api_call_type
-client.query(
-    q.CreateIndex(
-        {
-            name: 'matches_raw_prov_api_duration', 
-            source: q.Collection('matches_raw'), 
-            terms: [], 
-            values: [{ field: ['data', 'provenance', 'dataFetchStage', 'apiCallDuration'] }]
-        }
-    )
-).then(
-    (ret) => console.log(ret),
-    (err) => console.log(err)
-)
-
-// ## Create index for average first blood
-// client.query(
-//     q.CreateIndex(
-//         {
-//             name: 'matches_raw_fb_time', 
-//             source: q.Collection('matches_raw'), 
-//             terms: [], 
-//             values: [{ field: ['data', 'results', 'first_blood_time'] }]
-//         }
-//     )
-// ).then(
-//     (ret) => console.log(ret),
-//     (err) => console.log(err)
-// )
-
-// ## Raw Data Count index
-// client.query(
-//     q.CreateIndex({
-//         name: 'all_raw_matches',
-//         source: q.Collection('matches_raw')
-//     })
-// ).then((ret) => console.log(ret))
-
-// ## Query Match Duration
-// var startTime = Date.now()
-// client.query(
-//     q.Get(
-//         q.Ref(
-//             q.Collection('matches'), 
-//             '4931268777'
-//         )
-//     )
-// ).then(
-    // (ret) => console.log('Match Duration: ' + ret['data']['result']['duration'] + ' and time to fetch: ' + (Date.now() - startTime) + 'ms')
-// )
-
 // ## WIP
 // var startTime = Date.now()
 // client.query(q.Max(q.Match(q.Index('matches_duration')))).then((ret) => console.log(ret))
 
-// ## Mean match duraion
+// Query Match Duration
+var startTime = Date.now()
+client.query(
+    q.Get(
+        q.Ref(
+            q.Collection('matches'), 
+            '4931268777'
+        )
+    )
+).then(
+    (ret) => console.log('Match Duration: ' + ret['data']['result']['duration'] + ' and time to fetch: ' + (Date.now() - startTime) + 'ms')
+)
+
+// Mean match duration
 client.query(
     q.Mean(
         q.Match(
@@ -86,7 +35,7 @@ client.query(
     (ret) => console.log('Mean game duration: ' + (ret / 60).toFixed(2) + ' minutes')
 )
 
-// ## Max match duraion
+// Max match duraion
 client.query(
     q.Max(
         q.Match(
@@ -97,7 +46,7 @@ client.query(
     (ret) => console.log('Max game duration: ' + (ret / 60).toFixed(2) + ' minutes')
 )
 
-// ## Max match duraion
+// Max match duraion
 client.query(
     q.Min(
         q.Match(
@@ -108,7 +57,7 @@ client.query(
     (ret) => console.log('Min game duration: ' + (ret / 60).toFixed(2) + ' minutes')
 )
 
-// ## Mean First Blood time
+// Mean First Blood time
 client.query(
     q.Mean(
         q.Match(
@@ -119,16 +68,26 @@ client.query(
     (ret) => console.log('Mean FB Time: ' + (ret / 60).toFixed(2) + ' minutes')
 )
 
-// client.query(
-//     q.Paginate(
-//         q.Match(
-//             q.Index('matches_duration')
-//         )    
-//     )
-// )
-// .then((ret) => console.log(ret))
+// Number of matches in the last 4 months
+var today = moment().utc().format('YYYY-MM-DDTHH:mm:ssZ');
+var beforeFourMonths = moment().subtract(4, 'months').utc().format('YYYY-MM-DDTHH:mm:ssZ');
 
-// ## Count of records
+client.query(
+    q.Count(
+        q.Range(
+            q.Match(
+                q.Index("match_by_ts")
+            ), 
+            q.Time(beforeFourMonths), 
+            q.Time(today)
+        )
+    )
+).then(
+    (ret) => console.log('Number of matches in the last 4 months: ' + ret),
+    (err) => console.log(err)
+)
+
+// Count of records
 var startTime = Date.now()
 client.query(
     q.Count(
