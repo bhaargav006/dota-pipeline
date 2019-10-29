@@ -1,9 +1,10 @@
-import calendar, time, logging, os, json, sys
+import calendar, time, logging, os, json, sys, pytz
 
 from data_dump.match_details_fetcher import getMatchDetails
 from library.constants import LOG_ROOT, NUM_MESSAGES, PROJECT_ID, SUBSCRIPTION_NAME
 from library.helpers import log_with_process_name
 
+from datetime import datetime
 from google.cloud import pubsub_v1
 
 # System Argument ProcesName is needed - Name of process for provenance
@@ -28,7 +29,9 @@ while True:
         for message in response.received_messages:
             match_id = message.message.data.decode("utf-8")
             logging.debug(log_with_process_name(PROCESS_NAME, f'Calling matchDetails with matchID: {match_id}'))
-            getMatchDetails(match_id, PROCESS_NAME, KEY, collection_name)
+            
+            stage_start_time = pytz.utc.localize(datetime.now()) 
+            getMatchDetails(match_id, PROCESS_NAME, KEY, collection_name, stage_start_time)
 
             ack_list = []
             ack_list.append(message.ack_id)
