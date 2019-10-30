@@ -141,11 +141,7 @@ def processHeroInformation(match_data):
 
     players = match_data['result']['players']
     for player in players:
-        win_flag = False
-        if player['player_slot'] <= 4 and radiant_win:
-            win_flag = True
-        elif player['player_slot'] > 4 and not radiant_win:
-            win_flag = True
+        win_flag = getWinFlag(player, radiant_win)
 
         hero_data = client.query(
             q.get(
@@ -183,6 +179,62 @@ def getItemsData(player_info, hero_data):
     hero_data['items'][player_info['backpack_0']] += 1
     hero_data['items'][player_info['backpack_1']] += 1
     hero_data['items'][player_info['backpack_2']] += 1
+
+
+def processHeroPairInformation(match_data):
+    players = match_data['result']['players']
+    hero_ids = [player['hero_id'] for player in players]
+    radiant_win = match_data['result']['radiant_win']
+    for k in range(0, len(hero_ids)):
+        for j in range(k + 1, len(hero_ids)):
+            if hero_ids[k] < hero_ids[j]:
+                key = format(hero_ids[k], '03d') + format(hero_ids[j], '03d')
+            else:
+                key = format(hero_ids[j], '03d') + format(hero_ids[k], '03d')
+            hero_data = client.query(
+                q.get(
+                    q.ref(
+                        q.Collection('hero_pair'),
+                        key
+                    )
+                )
+            )
+
+            if isRadiant(hero_ids[k]) and isRadiant(hero_ids[j]):
+                hero_data['hero_pair'] = key
+                hero_data['total_count'] += 1
+                if radiant_win:
+                    hero_data['win_count'] += 1
+            else:
+                if not isRadiant(hero_ids[k]) and not isRadiant(hero_ids[j]) :
+                    hero_data['hero_pair'] = key
+                    hero_data['total_count'] += 1
+                    if not radiant_win:
+                        hero_data['win_count'] += 1
+
+            hero_data = client.query(
+                q.update(
+                    q.ref(
+                        q.Collection('hero_pair'),
+                    )
+                )
+            )
+
+
+
+def isRadiant(player):
+    if player['hero_id'] < 5:
+        return True
+    return False
+
+
+def getWinFlag(player, radiant_win):
+    win_flag = False
+    if player['player_slot'] <= 4 and radiant_win:
+        win_flag = True
+    elif player['player_slot'] > 4 and not radiant_win:
+        win_flag = True
+    return win_flag
 
 
 def preProcessData(match_data):
