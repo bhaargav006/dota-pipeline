@@ -1,3 +1,4 @@
+import moment from 'moment';
 /*!
 
 =========================================================
@@ -226,7 +227,7 @@ let chartExample2 = {
     gradientStroke.addColorStop(0, "rgba(29,140,248,0)"); //blue colors
     console.log(data);
     return {
-      labels: data.map(d => d.time),
+      labels: data.map(d => moment(d.time).format('HH:mm:ss')),
       datasets: [
         {
           label: "Data",
