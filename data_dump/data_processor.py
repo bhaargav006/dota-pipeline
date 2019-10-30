@@ -141,11 +141,7 @@ def processHeroInformation(match_data):
 
     players = match_data['result']['players']
     for player in players:
-        win_flag = False
-        if player['player_slot'] <= 4 and radiant_win:
-            win_flag = True
-        elif player['player_slot'] > 4 and not radiant_win:
-            win_flag = True
+        win_flag = getWinFlag(player, radiant_win)
 
         hero_data = client.query(
             q.get(
@@ -183,6 +179,65 @@ def getItemsData(player_info, hero_data):
     hero_data['items'][player_info['backpack_0']] += 1
     hero_data['items'][player_info['backpack_1']] += 1
     hero_data['items'][player_info['backpack_2']] += 1
+
+
+def processHeroPairInformation(match_data):
+    players = match_data['result']['players']
+    radiant_hero_ids = []
+    dire_hero_ids = []
+    for player in players:
+        if isRadiant(player):
+            radiant_hero_ids.append(player['hero_id'])
+        else:
+            dire_hero_ids.append(player['hero_id'])
+
+    radiant_win = match_data['result']['radiant_win']
+    updatePairInformationForTeam(radiant_hero_ids,radiant_win)
+    updatePairInformationForTeam(dire_hero_ids, not radiant_win)
+
+
+def updatePairInformationForTeam(hero_ids, team_win):
+    for k in range(0, len(hero_ids)):
+        for j in range(k + 1, len(hero_ids)):
+            if hero_ids[k] < hero_ids[j]:
+                key = format(hero_ids[k], '03d') + format(hero_ids[j], '03d')
+            else:
+                key = format(hero_ids[j], '03d') + format(hero_ids[k], '03d')
+            hero_data = client.query(
+                q.get(
+                    q.ref(
+                        q.Collection('hero_pairs'),
+                        key
+                    )
+                )
+            )
+            hero_data['games'] += 1
+            if team_win:
+                hero_data['wins'] += 1
+
+            client.query(
+                q.update(
+                    q.ref(
+                        q.Collection('hero_pairs'),
+                        key
+                    )
+                )
+            )
+
+
+def isRadiant(player):
+    if player['player_slot'] < 5:
+        return True
+    return False
+
+
+def getWinFlag(player, radiant_win):
+    win_flag = False
+    if player['player_slot'] <= 4 and radiant_win:
+        win_flag = True
+    elif player['player_slot'] > 4 and not radiant_win:
+        win_flag = True
+    return win_flag
 
 
 def preProcessData(match_data):
