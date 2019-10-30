@@ -22,4 +22,4 @@ while True:
             logging.error(f'Response status code: {response.status_code}')
     except Exception as e:
         logging.error(f'Error occurred {str(e)}, retrying')
-    time.sleep(2)
+    time.sleep(1)
