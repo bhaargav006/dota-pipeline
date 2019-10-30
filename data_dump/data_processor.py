@@ -183,8 +183,20 @@ def getItemsData(player_info, hero_data):
 
 def processHeroPairInformation(match_data):
     players = match_data['result']['players']
-    hero_ids = [player['hero_id'] for player in players]
+    radiant_hero_ids = []
+    dire_hero_ids = []
+    for player in players:
+        if isRadiant(player):
+            radiant_hero_ids.append(player['hero_id'])
+        else:
+            dire_hero_ids.append(player['hero_id'])
+
     radiant_win = match_data['result']['radiant_win']
+    updatePairInformationForTeam(radiant_hero_ids,radiant_win)
+    updatePairInformationForTeam(dire_hero_ids, not radiant_win)
+
+
+def updatePairInformationForTeam(hero_ids, team_win):
     for k in range(0, len(hero_ids)):
         for j in range(k + 1, len(hero_ids)):
             if hero_ids[k] < hero_ids[j]:
@@ -199,31 +211,22 @@ def processHeroPairInformation(match_data):
                     )
                 )
             )
+            hero_data['total_count'] += 1
+            if team_win:
+                hero_data['win_count'] += 1
 
-            if isRadiant(hero_ids[k]) and isRadiant(hero_ids[j]):
-                hero_data['hero_pair'] = key
-                hero_data['total_count'] += 1
-                if radiant_win:
-                    hero_data['win_count'] += 1
-            else:
-                if not isRadiant(hero_ids[k]) and not isRadiant(hero_ids[j]) :
-                    hero_data['hero_pair'] = key
-                    hero_data['total_count'] += 1
-                    if not radiant_win:
-                        hero_data['win_count'] += 1
-
-            hero_data = client.query(
+            client.query(
                 q.update(
                     q.ref(
                         q.Collection('hero_pair'),
+                        key
                     )
                 )
             )
 
 
-
 def isRadiant(player):
-    if player['hero_id'] < 5:
+    if player['player_slot'] < 5:
         return True
     return False
 
