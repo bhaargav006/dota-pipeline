@@ -224,7 +224,7 @@ let chartExample2 = {
     gradientStroke.addColorStop(1, "rgba(29,140,248,0.2)");
     gradientStroke.addColorStop(0.4, "rgba(29,140,248,0.0)");
     gradientStroke.addColorStop(0, "rgba(29,140,248,0)"); //blue colors
-
+    console.log(data);
     return {
       labels: data.map(d => d.time),
       datasets: [

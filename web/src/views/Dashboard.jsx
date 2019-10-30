@@ -60,9 +60,8 @@ class Dashboard extends React.Component {
     });
 
     const channel = pusher.subscribe('my-channel');
-    channel.bind('my-event', function(data) {
+    channel.bind('my-event', (data) => {
       if (data) {
-        data = JSON.stringify(data)
         this.setState({
           matchCount: data['match_count'],
           dataProcessedPerSecond: data['data_processed_per_second']
