@@ -80,6 +80,9 @@ class Dashboard extends React.Component {
     return (
       <>
         <div style={{ padding: 10 }}>
+          <Col lg="12" className={'main-heading'}>
+            DATA DIGGERS
+          </Col>
           <Row>
             <Col lg="12">
               <Card className="card-chart">
