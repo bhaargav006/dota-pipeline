@@ -19,7 +19,7 @@ logging.basicConfig(filename=LOG_ROOT + 'detail_fetcher.log', level=logging.DEBU
 logging.info(log_with_process_name(PROCESS_NAME, 'Started'))
 
 subscriber = pubsub_v1.SubscriberClient()
-subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_NAME)
+subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_NAME + '-new')
 
 while True:
     try:
