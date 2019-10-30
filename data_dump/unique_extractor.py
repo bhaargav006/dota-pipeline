@@ -19,10 +19,11 @@ ts = sys.argv[1]
 
 logging.info(f'Process ID: {ts}: Extracting unique values')
 
-with open(DATA_ROOT + fileName) as f:
+with open(DATA_ROOT + 'serial_matches_' + fileName + '.log') as f:
     match_list = f.readlines()
 
 match_list = list(filter(None, [v.rstrip() for v in match_list]))
+match_list = set(match_list)
 
 with open(DATA_ROOT + f'unique_serial_matches.log', "a") as f:
     for item in match_list:
