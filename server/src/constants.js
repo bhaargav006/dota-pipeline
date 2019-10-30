@@ -1,0 +1,1 @@
+export const DATABASE_URL = '54.245.218.63'
