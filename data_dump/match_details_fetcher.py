@@ -54,12 +54,17 @@ def publishMatchIdToQueue(matchID):
 
 def writeDataToDatabase(responseJson, matchID, process_name, collection_name):
     logging.debug(log_with_process_name(process_name, f'Persisting {responseJson} to database'))
-    client.query(
-        q.create(
-            q.ref(q.collection(collection_name), matchID),
-            { "data" : responseJson }
+    try:
+        client.query(
+            q.create(
+                q.ref(q.collection(collection_name), matchID),
+                { "data" : responseJson }
+            )
         )
-    )
+    except Exception as e:
+        if str(e) != 'Document already exists':
+            data = matchID
+            publisher.publish(topic_path, data=data.encode('utf-8'))
     logging.debug(log_with_process_name(process_name, f'Added matchID {matchID} to database'))
 
 
