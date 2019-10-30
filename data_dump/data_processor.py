@@ -19,9 +19,9 @@ PROCESS_NAME = sys.argv[1]
 COLLECTION_NAME = sys.argv[2]
 # COLLECTION_NAME = 'matches_raw'
 
-logging.basicConfig(filename=LOG_ROOT + 'data_processor.log', level=logging.DEBUG,
+logging.basicConfig(filename='data_processor.log', level=logging.DEBUG,
                     format='%(levelname)s:%(asctime)s %(message)s')
-logging.info(log_with_process_name(PROCESS_NAME, 'Started'))
+print(log_with_process_name(PROCESS_NAME, 'Started'))
 
 subscriber = pubsub_v1.SubscriberClient()
 subscription_path = subscriber.subscription_path(PROJECT_ID, DATA_SUBSCRIPTION_NAME)
@@ -32,6 +32,7 @@ client = FaunaClient(secret="secret", domain=DATABASE_URL, scheme="http", port="
 def processMatchId(match_id):
     stage_start_time = pytz.utc.localize(datetime.now())
 
+    startTime = datetime.now()
     match_data = client.query(
         q.get(
             q.ref(
@@ -40,23 +41,38 @@ def processMatchId(match_id):
             )
         )
     )
+    print('Fetching record: ', datetime.now() - startTime)
 
     match_data = match_data['data']
 
     if not preProcessData(match_data):
         return
 
+    startTime = datetime.now()
     count = processMatchCounter()
-    processFirstBloodTime(match_data, count)
-    processMatchDuration(match_data, count)
+    print('Processing Match Counter: ', datetime.now() - startTime)
+
+    startTime = datetime.now()
+    processAggregates(match_data, count)
+    print('Processing Aggregates: ', datetime.now() - startTime)
 
     match = createMatchDocument(match_data)
-    processHeroInformation(match_data)
-    processTemporalHeroInformation(match_data)
-    # Under Review
-    # hero = getHeroData(match_data) 
 
+    startTime = datetime.now()
+    processHeroInformation(match_data)
+    print('Processing Hero Information: ', datetime.now() - startTime)
+
+    startTime = datetime.now()
+    processTemporalHeroInformation(match_data)
+    print('Processing Temporal Hero Information: ', datetime.now() - startTime)
+
+    startTime = datetime.now()
+    processHeroPairInformation(match_data)
+    print('Processing Hero Pairs: ', datetime.now() - startTime)
+
+    startTime = datetime.now()
     processMatchPredictor(match_data)
+    print('Processing Match Predictor: ', datetime.now() - startTime)
 
     addProvenance(match, match_data, stage_start_time)
 
@@ -84,6 +100,9 @@ def createMatchDocument(match_data):
 
 
 def addProvenance(match, match_data, stage_start_time):
+    if 'provenance' not in match_data:
+        match_data['provenance'] = {}
+
     match['provenance'] = match_data['provenance']
     match['provenance']['dataProcessStage'] = {}
 
@@ -121,6 +140,7 @@ def processTemporalHeroInformation(match_data):
     radiant_win = match_data['result']['radiant_win']
 
     players = match_data['result']['players']
+    temporal_hero_list = []
     for player in players:
         win_flag = False
         if player['player_slot'] <= 4 and radiant_win:
@@ -131,44 +151,73 @@ def processTemporalHeroInformation(match_data):
         temporal_hero = {}
         temporal_hero['id'] = player['hero_id']
         temporal_hero['win'] = win_flag
-        temporal_hero['match_start_time'] = pytz.utc.localize(
-            datetime.utcfromtimestamp(match_data['result']['start_time']))
+        temporal_hero['match_start_time'] = pytz.utc.localize(datetime.utcfromtimestamp(match_data['result']['start_time']))
+        temporal_hero_list.append(temporal_hero)
 
-        client.query(q.create(q.collection('heroes_temporal'), {"data": temporal_hero}))
+    client.query(
+        q.map_(
+            q.lambda_(
+                'temporal_hero',
+                q.create(q.collection('heroes_temporal'), { "data": q.var('temporal_hero') })
+            ),
+            temporal_hero_list
+        )
+    )
 
 
 def processHeroInformation(match_data):
     radiant_win = match_data['result']['radiant_win']
-
     players = match_data['result']['players']
+
+    win_heros = []
+    heros_in_game = []
+
     for player in players:
         win_flag = getWinFlag(player, radiant_win)
 
-        hero_data = client.query(
-            q.get(
-                q.ref(
-                    q.collection('heroes'),
-                    player['hero_id']
-                )
-            )
-        )
-        hero_data = hero_data['data']
+        heros_in_game.append(player['hero_id'])
         if win_flag:
-            hero_data['wins'] += 1
-            hero_data['games'] += 1
-        else:
-            hero_data['games'] += 1
-        getItemsData(player, hero_data)
+            win_heros.append(player['hero_id'])
 
-        hero_data = client.query(
-            q.update(
-                q.ref(
-                    q.collection('heroes'),
-                    player['hero_id']
-                ),
-                { 'data': hero_data }
-            )
+    hero_list=client.query(
+        q.map_(
+            q.lambda_(
+                'hero',
+                q.get(q.ref(q.collection('heroes'), q.var('hero')))
+            ),
+            heros_in_game
         )
+    )
+
+    update_hero_list = []
+    for hero_info in hero_list:
+        ref = hero_info['ref']
+        data = hero_info['data']
+
+        if data['id'] in win_heros:
+            data['wins'] += 1
+            data['games'] += 1
+        else:
+            data['games'] += 1
+
+        update_info = {}
+        update_info['ref'] = ref
+        update_info['data'] = data
+
+        update_hero_list.append(update_info)
+
+    client.query(
+        q.map_(
+            q.lambda_(
+                'hero',
+                q.update(
+                    q.select(['ref'], q.var('hero')),
+                    { 'data': q.select(['data'], q.var('hero')) }
+                )
+            ),
+            update_hero_list
+        )
+    )
 
 
 def getItemsData(player_info, hero_data):
@@ -199,33 +248,53 @@ def processHeroPairInformation(match_data):
 
 
 def updatePairInformationForTeam(hero_ids, team_win):
+    key_list=[]
     for k in range(0, len(hero_ids)):
         for j in range(k + 1, len(hero_ids)):
             if hero_ids[k] < hero_ids[j]:
                 key = format(hero_ids[k], '03d') + format(hero_ids[j], '03d')
             else:
                 key = format(hero_ids[j], '03d') + format(hero_ids[k], '03d')
-            hero_data = client.query(
-                q.get(
-                    q.ref(
-                        q.collection('hero_pairs'),
-                        key
-                    )
-                )
-            )['data']
-            hero_data['games'] += 1
-            if team_win:
-                hero_data['wins'] += 1
+            key_list.append(key)
 
-            client.query(
-                q.update(
-                    q.ref(
-                        q.collection('hero_pairs'),
-                        key
-                    )
-                )
+    try: 
+        hero_data_list=client.query(
+            q.map_(
+                q.lambda_(
+                    'hero_pair',
+                    q.get(q.ref(q.collection('hero_pairs'), q.var('hero_pair')))
+                ),
+                key_list
             )
+        )
+    except Exception as e:
+        print(e)
+        print(key_list)
 
+    hero_team_list=[]
+    for hero_data in hero_data_list :
+        hero_team_dictionary = {}
+        hero_pair_ref=hero_data['ref']
+        hero_pair_data = hero_data['data']
+        hero_pair_data['games']+=1
+        if team_win:
+            hero_pair_data['wins'] += 1
+        hero_team_dictionary['ref']=hero_pair_ref
+        hero_team_dictionary['data']=hero_pair_data
+        hero_team_list.append(hero_team_dictionary)
+
+    client.query(
+        q.map_(
+            q.lambda_(
+                'hero_pair',
+                q.update(
+                    q.select(['ref'],q.var('hero_pair')),
+                    {'data': q.select(['data'], q.var('hero_pair'))}
+                )
+            ),
+            hero_team_list
+        )
+    )
 
 def isRadiant(player):
     if player['player_slot'] < 5:
@@ -274,73 +343,71 @@ def checkMatchAbandoned(match_data):
     return match_abandoned
 
 
-def processFirstBloodTime(match_data, count):
-    first_blood_time = match_data['result']['first_blood_time']
-
-    client.query(
-        q.if_(
-            client.query(q.select(['data', 'data'], q.get(
-                q.ref(q.collection('match_aggregate_info'), getIntValue('max_first_blood_time'))))) < first_blood_time,
-            q.update(q.ref(q.collection('match_aggregate_info'), getIntValue('max_first_blood_time')),
-                     {"data": {"data": first_blood_time}}),
-            'no-nothing'
-        )
-    )
-
-    client.query(
-        q.update(
-            q.ref(
-                q.collection('match_aggregate_info'),
-                getIntValue('avg_first_blood_time')
-            ),
-            {
-                "data": {
-                    "data": ((client.query(q.select(['data', 'data'], q.get(
-                        q.ref(q.collection('match_aggregate_info'), getIntValue('avg_first_blood_time'))))) * (
-                                      count - 1) + first_blood_time) / count)
-                }
-            }
-        )
-    )
-
-
-def processMatchDuration(match_data, count):
+def processAggregates(match_data, count):
     match_duration = match_data['result']['duration']
 
-    client.query(
-        q.if_(
-            q.gt(client.query(q.select(['data', 'data'], q.get(
-                q.ref(q.collection('match_aggregate_info'), getIntValue('min_match_duration'))))), match_duration),
-            q.update(q.ref(q.collection('match_aggregate_info'), getIntValue('min_match_duration')),
-                     {"data": {"data": match_duration}}),
-            'no-nothing'
+    aggregate_info_list = client.query(
+        q.map_(
+            q.lambda_(
+                'data',
+                q.get(q.ref(q.collection('match_aggregate_info'), q.var('data')))
+            ),
+            [getIntValue('min_match_duration'), getIntValue('max_match_duration'), getIntValue('max_first_blood_time'), getIntValue('mean_match_duration'), getIntValue('avg_first_blood_time')]
         )
     )
-    
-    client.query(
-        q.if_(
-            q.lt(client.query(q.select(['data', 'data'], q.get(q.ref(q.collection('match_aggregate_info'), getIntValue('max_match_duration'))))), match_duration),
-            q.update(q.ref(q.collection('match_aggregate_info'), getIntValue('max_match_duration')), { "data": { "data": match_duration } }),
-            'no-nothing'
-        )            
-    )
+
+    new_aggregate_list = []
+
+    for aggregate in aggregate_info_list:
+        ref = aggregate['ref']
+        data = aggregate['data']
+
+        new_aggregate = {}
+        new_aggregate['ref'] = ref
+
+        if 'id='+str(getIntValue('min_match_duration')) in str(ref):
+            if data['data'] > match_duration:
+                new_data = {}
+                new_data['data'] = match_duration
+                new_aggregate['data'] = new_data
+                new_aggregate_list.append(new_aggregate)
+
+        if 'id='+str(getIntValue('max_match_duration')) in str(ref):
+            if data['data'] < match_duration:
+                new_data = {}
+                new_data['data'] = match_duration
+                new_aggregate['data'] = new_data
+                new_aggregate_list.append(new_aggregate)
+
+        if 'id='+str(getIntValue('max_first_blood_time')) in str(ref):
+            if data['data'] < match_duration:
+                new_data = {}
+                new_data['data'] = match_duration
+                new_aggregate['data'] = new_data
+                new_aggregate_list.append(new_aggregate)
+        
+        if 'id='+str(getIntValue('mean_match_duration')) in str(ref):
+            new_data = {}
+            new_data['data'] = (data['data'] * (count -1) + match_duration)/count
+            new_aggregate['data'] = new_data
+            new_aggregate_list.append(new_aggregate)
+        
+        if 'id='+str(getIntValue('avg_first_blood_time')) in str(ref):
+            new_data = {}
+            new_data['data'] = (data['data'] * (count -1) + match_duration)/count
+            new_aggregate['data'] = new_data
+            new_aggregate_list.append(new_aggregate)
 
     client.query(
-        q.let(
-            {'currVal': q.select(['data', 'data'], q.get(
-                q.ref(q.collection('match_aggregate_info'), getIntValue('mean_match_duration'))))},
-            q.update(
-                q.ref(
-                    q.collection('match_aggregate_info'),
-                    getIntValue('mean_match_duration')
-                ),
-                {
-                    "data": {
-                        "data": q.divide(q.add(q.multiply(q.var('currVal'), q.subtract(count, 1)), match_duration),
-                                         count)
-                    }
-                }
-            )
+        q.map_(
+            q.lambda_(
+                'data',
+                q.update(
+                    q.select(['ref'], q.var('data')),
+                    { 'data' : q.select(['data'], q.var('data'))}
+                )
+            ),
+            new_aggregate_list
         )
     )
 
@@ -348,8 +415,7 @@ def processMatchDuration(match_data, count):
 def processMatchCounter():
     resp = client.query(
         q.let(
-            {'currVal': q.select(['data', 'data'],
-                                 q.get(q.ref(q.collection('match_aggregate_info'), getIntValue('match_count'))))},
+            {'currVal': q.select(['data', 'data'], q.get(q.ref(q.collection('match_aggregate_info'), getIntValue('match_count'))))},
             q.update(
                 q.ref(
                     q.collection('match_aggregate_info'),
@@ -369,19 +435,21 @@ def processMatchCounter():
 
 while True:
     try:
-        logging.info(log_with_process_name(PROCESS_NAME, 'Fetching unique match details'))
-        response = subscriber.pull(subscription_path, max_messages=NUM_MESSAGES)
+        print(log_with_process_name(PROCESS_NAME, 'Fetching unique match details'))
+        response = subscriber.pull(subscription_path, max_messages=10)
 
         for message in response.received_messages:
             match_id = message.message.data.decode("utf-8")
             logging.debug(log_with_process_name(PROCESS_NAME, f'Processing data record for matchID: {match_id}'))
 
+            startTime = datetime.now()
             processMatchId(match_id)
+            print('Total Processing time: ', datetime.now() - startTime)
 
             ack_list = []
             ack_list.append(message.ack_id)
             subscriber.acknowledge(subscription_path, ack_list)
-            logging.info(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
+            print(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
 
     except Exception as e:
         logging.error('Exception: ', e)
