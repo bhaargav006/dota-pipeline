@@ -61,7 +61,7 @@ def processMatchId(match_id):
     addProvenance(match, match_data, stage_start_time)
 
     client.query(
-        q.replace(
+        q.create(
             q.ref(
                 q.collection('matches'), match_data['result']['match_id']
             ),
