@@ -211,9 +211,9 @@ def updatePairInformationForTeam(hero_ids, team_win):
                     )
                 )
             )
-            hero_data['total_count'] += 1
+            hero_data['games'] += 1
             if team_win:
-                hero_data['win_count'] += 1
+                hero_data['wins'] += 1
 
             client.query(
                 q.update(
