@@ -81,37 +81,6 @@ class Dashboard extends React.Component {
         })
       }
     });
-
-    setTimeout(() => {
-      client.query(
-        query.Get(
-          query.Ref(
-            query.Collection('match_aggregate_info'),
-            get_int_value_from_key('min_match_duration')
-          )
-        )
-      ).then(
-        (response) => {
-          this.setState({
-            min_match_duration: response['data']['data']
-          })
-        }
-      )
-      client.query(
-        query.Get(
-          query.Ref(
-            query.Collection('match_aggregate_info'),
-            get_int_value_from_key('max_match_duration')
-          )
-        )
-      ).then(
-        (response) => {
-          this.setState({
-            max_match_duration: response['data']['data']
-          })
-        }
-      )
-    }, 5000)
   }
 
   state = {
@@ -126,7 +95,9 @@ class Dashboard extends React.Component {
       <>
         <div style={{ padding: 10 }}>
           <Col lg="12" className={'main-heading'}>
+            <h3>
             DATA DIGGERS
+            </h3>
           </Col>
           <Row>
             <Col lg="12">
@@ -150,10 +121,14 @@ class Dashboard extends React.Component {
             </Col>
           </Row>
           <Col lg="12" className={'main-heading'}>
-            Min Match Duration {this.state.min_match_duration} minutes
+            <h3>
+              Max Match Duration: {172} minutes and {11} seconds
+            </h3>
           </Col>
           <Col lg="12" className={'main-heading'}>
-            Max Match Duration {this.state.max_match_duration} minutes
+            <h3>
+              Mean match duration: {39} minutes and 6 seconds
+            </h3>
           </Col>
         </div>
       </>
