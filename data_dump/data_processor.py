@@ -77,7 +77,8 @@ def createMatchDocument(match_data):
     match['radiant_win'] = match_data['result']['radiant_win']
     match['start_time'] = pytz.utc.localize(datetime.utcfromtimestamp(match_data['result']['start_time']))
     match['match_id'] = match_data['result']['match_id']
-    match['number_of_bans'] = len(match_data['result']['picks_bans'])
+    if 'picks_bans' in match_data['result']:
+        match['number_of_bans'] = len(match_data['result']['picks_bans'])
 
     return match
 
@@ -164,7 +165,8 @@ def processHeroInformation(match_data):
                 q.ref(
                     q.collection('heroes'),
                     player['hero_id']
-                )
+                ),
+                { 'data': hero_data }
             )
         )
 
