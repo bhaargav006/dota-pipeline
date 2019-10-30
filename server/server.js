@@ -26,7 +26,7 @@ var channels_client = new Pusher({
 
 app.get('/', function(req, res) {
   channels_client.trigger('my-channel', 'my-event', {
-    "message": last_10_matches
+    "message": process_per_second
   });
   res.status(200).send('Message Sent!');
 });
