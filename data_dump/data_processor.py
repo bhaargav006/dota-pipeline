@@ -151,7 +151,7 @@ def processHeroInformation(match_data):
                 )
             )
         )
-
+        hero_data = hero_data['data']
         if win_flag:
             hero_data['wins'] += 1
             hero_data['games'] += 1
@@ -210,7 +210,7 @@ def updatePairInformationForTeam(hero_ids, team_win):
                         key
                     )
                 )
-            )
+            )['data']
             hero_data['games'] += 1
             if team_win:
                 hero_data['wins'] += 1
