@@ -241,6 +241,9 @@ def getWinFlag(player, radiant_win):
 
 
 def preProcessData(match_data):
+    if match_data['result']['error']:
+        return False
+
     match_duration = match_data['result']['duration']
 
     if match_duration == 0:
