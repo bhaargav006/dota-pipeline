@@ -315,5 +315,3 @@ def processMatchCounter():
     )
 
     return getDataFromRef(resp)
-
-processMatchId(5080253225)
