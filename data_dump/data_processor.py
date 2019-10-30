@@ -11,55 +11,167 @@ from faunadb.objects import Ref
 from faunadb.client import FaunaClient
 
 # System Argument ProcesName is needed - Name of process for provenance
-# PROCESS_NAME = sys.argv[1]
-PROCESS_NAME = 'test-sid'
+PROCESS_NAME = sys.argv[1]
 
 # System Argument Collection is needed - To decide which collection to persist to
-# COLLECTION_NAME = sys.argv[2]
-COLLECTION_NAME = 'matches_raw' 
+COLLECTION_NAME = sys.argv[2]
 
-logging.basicConfig(filename='data_processor.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
+logging.basicConfig(filename=LOG_ROOT + 'data_processor.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 logging.info(log_with_process_name(PROCESS_NAME, 'Started'))
 
-# subscriber = pubsub_v1.SubscriberClient()
-# subscription_path = subscriber.subscription_path(PROJECT_ID, DATA_SUBSCRIPTION_NAME)
+subscriber = pubsub_v1.SubscriberClient()
+subscription_path = subscriber.subscription_path(PROJECT_ID, DATA_SUBSCRIPTION_NAME)
 
 client = FaunaClient(secret="secret", domain=DATABASE_URL, scheme="http", port="8443")
 
-# while True:
-#     try:
-#         logging.info(log_with_process_name(PROCESS_NAME, 'Fetching unique match details'))
-#         response = subscriber.pull(subscription_path, max_messages=NUM_MESSAGES)
+while True:
+    try:
+        logging.info(log_with_process_name(PROCESS_NAME, 'Fetching unique match details'))
+        response = subscriber.pull(subscription_path, max_messages=NUM_MESSAGES)
 
-#         for message in response.received_messages:
-#             match_id = message.message.data.decode("utf-8")
-#             logging.debug(log_with_process_name(PROCESS_NAME, f'Processing data record for matchID: {match_id}'))
+        for message in response.received_messages:
+            match_id = message.message.data.decode("utf-8")
+            logging.debug(log_with_process_name(PROCESS_NAME, f'Processing data record for matchID: {match_id}'))
 
-#             processMatchId(match_id)
+            processMatchId(match_id)
 
-#             ack_list = []
-#             ack_list.append(message.ack_id)
-#             subscriber.acknowledge(subscription_path, ack_list)
-#             logging.info(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
+            ack_list = []
+            ack_list.append(message.ack_id)
+            subscriber.acknowledge(subscription_path, ack_list)
+            logging.info(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
 
-#     except Exception as e:
-#         logging.error('Exception: ', e)
+    except Exception as e:
+        logging.error('Exception: ', e)
 
-def getItemsData(player_info):
-    items: List[int]=[]
-    for i in range(0,ITEM_SIZE):
-        items.append(0)
-    items[player_info['item_0']]+=1
-    items[player_info['item_1']]+=1
-    items[player_info['item_2']]+=1
-    items[player_info['item_3']]+=1
-    items[player_info['item_4']]+=1
-    items[player_info['item_5']]+=1
-    items[player_info['backpack_0']]+=1
-    items[player_info['backpack_1']]+=1
-    items[player_info['backpack_2']]+=1
-    return items
+def processMatchId(match_id):
+    stage_start_time = pytz.utc.localize(datetime.now()) 
 
+    match_data = client.query(
+        q.get(
+            q.ref(
+                q.collection(COLLECTION_NAME), 
+                match_id
+            )
+        )
+    )
+
+    match_data = match_data['data']
+
+    if not preProcessData(match_data):
+        return
+    
+    count = processMatchCounter()
+    processFirstBloodTime(match_data, count)
+    processMatchDuration(match_data, count)
+
+    match = createMatchDocument(match_data)
+    processHeroInformation(match_data)
+    processTemporalHeroInformation(match_data)
+    # Under Review
+    # hero = getHeroData(match_data) 
+
+    addProvenance(match, match_data, stage_start_time)
+    
+    client.query(
+        q.replace(
+            q.ref(
+                q.collection('matches'), match_data['result']['match_id']
+            ),
+            { "data" : match }
+        )
+    )  
+
+def createMatchDocument(match_data):
+    match = {}
+
+    match['abandoned_status'] = checkMatchAbandoned(match_data)
+    match['radiant_win'] = match_data['result']['radiant_win']
+    match['start_time'] = pytz.utc.localize(datetime.utcfromtimestamp(match_data['result']['start_time']))
+    match['match_id'] = match_data['result']['match_id']
+    match['number_of_bans'] = len(match_data['result']['picks_bans'])
+
+    return match
+
+def addProvenance(match, match_data, stage_start_time):
+    match['provenance'] = match_data['provenance']
+    match['provenance']['dataProcessStage'] =  {}
+
+    stage_end_time = pytz.utc.localize(datetime.now())  
+
+    match['provenance']['dataProcessStage']['startTime'] = stage_start_time
+    match['provenance']['dataProcessStage']['processDuration'] = (stage_end_time - stage_start_time).microseconds
+    match['provenance']['dataProcessStage']['processName'] = PROCESS_NAME
+
+def processTemporalHeroInformation(match_data):
+    radiant_win = match_data['result']['radiant_win']
+
+    players = match_data['result']['players']
+    for player in players:
+        win_flag = False
+        if player['player_slot'] < 4 and radiant_win:
+            win_flag = True
+        elif player['player_slot'] > 4 and not radiant_win:
+            win_flag = True
+
+        temporal_hero = {}
+        temporal_hero['id'] = player['hero_id']
+        temporal_hero['win'] = win_flag
+        temporal_hero['match_start_time'] = pytz.utc.localize(datetime.utcfromtimestamp(match_data['result']['start_time']))
+
+        client.query(q.create(q.collection('heroes_temporal'), { "data": temporal_hero }))
+
+def processHeroInformation(match_data):
+    radiant_win = match_data['result']['radiant_win']
+
+    players = match_data['result']['players']
+    for player in players:
+        win_flag = False
+        if player['player_slot'] < 4 and radiant_win:
+            win_flag = True
+        elif player['player_slot'] > 4 and not radiant_win:
+            win_flag = True
+
+        if win_flag:
+            client.query(
+                q.let(
+                    { 
+                        'countCurrVal': q.select(['data', 'games'], q.get(q.ref(q.collection('heroes'), player['hero_id']))),
+                        'winCurrVal': q.select(['data', 'wins'], q.get(q.ref(q.collection('heroes'), player['hero_id']))) 
+                    },
+                    q.update(
+                        q.ref(
+                            q.collection('heroes'), 
+                            player['hero_id']
+                        ), 
+                        {
+                            "data": { 
+                                "games": q.add(1, q.var('countCurrVal')),
+                                "wins": q.add(1, q.var('winCurrVal'))
+                            }
+                        }
+                    )
+                )
+            )
+        else:
+            client.query(
+                q.let(
+                    { 
+                        'countCurrVal': q.select(['data', 'games'], q.get(q.ref(q.collection('heroes'), player['hero_id'])))
+                    },
+                    q.update(
+                        q.ref(
+                            q.collection('heroes'), 
+                            player['hero_id']
+                        ), 
+                        {
+                            "data": { 
+                                "games": q.add(1, q.var('countCurrVal'))
+                            }
+                        }
+                    )
+                )
+            )
+        
 
 def getHeroData(match_data):
     heroes: List[Dict[str, Union[List[int], Any]]] = []
@@ -104,60 +216,20 @@ def getHeroData(match_data):
         heroes.append(hero)
     return heroes
 
-def processMatchId(match_id):
-    start_time = pytz.utc.localize(datetime.now()) 
-
-    match_data = client.query(
-        q.get(
-            q.ref(
-                q.collection(COLLECTION_NAME), 
-                match_id
-            )
-        )
-    )
-
-    match_data = match_data['data']
-
-    if not preProcessData(match_data):
-        return
-    
-    count = processMatchCounter()
-    processFirstBloodTime(match_data, count)
-    processMatchDuration(match_data, count)
-
-    match = createMatchDocument(match_data)
-
-    end_time = pytz.utc.localize(datetime.now())  
-    addProvenance(match, match_data, start_time, end_time)
-    
-    client.query(
-        q.replace(
-            q.ref(
-                q.collection('matches'), match_data['result']['match_id']
-            ),
-            { "data" : match }
-        )
-    )  
-
-def createMatchDocument(match_data):
-    match = {}
-
-    match['abandoned_status'] = checkMatchAbandoned(match_data)
-    match['radiant_win'] = match_data['result']['radiant_win']
-    match['start_time'] = pytz.utc.localize(datetime.utcfromtimestamp(match_data['result']['start_time']))
-    match['match_id'] = match_data['result']['match_id']
-    match['number_of_bans'] = len(match_data['result']['picks_bans'])
-
-    return match
-
-def addProvenance(match, match_data, start_time, end_time):
-    match['provenance'] = match_data['provenance']
-
-    match['provenance']['dataProcessStage'] =  {}
-
-    match['provenance']['dataProcessStage']['startTime'] = start_time
-    match['provenance']['dataProcessStage']['processDuration'] = (end_time - start_time).microseconds
-    match['provenance']['dataProcessStage']['processName'] = PROCESS_NAME
+def getItemsData(player_info):
+    items: List[int]=[]
+    for i in range(0,ITEM_SIZE):
+        items.append(0)
+    items[player_info['item_0']]+=1
+    items[player_info['item_1']]+=1
+    items[player_info['item_2']]+=1
+    items[player_info['item_3']]+=1
+    items[player_info['item_4']]+=1
+    items[player_info['item_5']]+=1
+    items[player_info['backpack_0']]+=1
+    items[player_info['backpack_1']]+=1
+    items[player_info['backpack_2']]+=1
+    return items
 
 def preProcessData(match_data):
     match_duration = match_data['result']['duration']
@@ -166,6 +238,9 @@ def preProcessData(match_data):
         return False
 
     if len(match_data['result']['players']) != 10:
+        return False
+
+    if match_data['result']['game_mode'] not in [1, 2, 3, 4, 5, 8, 14, 16, 22]:
         return False
 
     return True
@@ -256,5 +331,3 @@ def processMatchCounter():
     )
 
     return getDataFromRef(resp)
-
-processMatchId(4929685690)

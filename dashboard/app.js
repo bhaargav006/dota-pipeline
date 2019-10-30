@@ -87,6 +87,67 @@ client.query(
     (err) => console.log(err)
 )
 
+// Number of wins in the last 4 months for one hero
+var today = moment().utc().format('YYYY-MM-DDTHH:mm:ssZ');
+var beforeFourMonths = moment().subtract(5, 'months').utc().format('YYYY-MM-DDTHH:mm:ssZ');
+
+client.query(
+    q.Count(
+        q.Range(
+            q.Match(
+                q.Index("heroes_temporal_winrate"),
+                47,
+                true
+            ), 
+            q.Time(beforeFourMonths), 
+            q.Time(today)
+        )
+    )
+).then(
+    (ret) => console.log('Number of wins in the last 4 months for one hero: ', ret),
+    (err) => console.log(err)
+)
+
+// Number of games played in the last 4 months for one hero
+var today = moment().utc().format('YYYY-MM-DDTHH:mm:ssZ');
+var beforeFourMonths = moment().subtract(5, 'months').utc().format('YYYY-MM-DDTHH:mm:ssZ');
+client.query(
+    q.Count(
+        q.Range(
+            q.Union(
+                q.Match(
+                    q.Index("heroes_temporal_winrate"),
+                    47,
+                    true
+                ),
+                q.Match(
+                    q.Index("heroes_temporal_winrate"),
+                    47,
+                    false
+                )
+            ), 
+            q.Time(beforeFourMonths), 
+            q.Time(today)
+        )
+    )
+).then(
+    (ret) => console.log('Number of games played in the last 4 months for one hero ', ret),
+    (err) => console.log(err)
+)
+
+// Overall win-rate of a hero
+client.query(
+    q.Get(
+        g.Ref(
+            q.Collection('heroes'),
+            '47'
+        )
+    )
+).then(
+    (ret) => console.log('Overall win-rate of a hero: ', ret),
+    (err) => console.log(err)
+)
+
 // Count of records
 var startTime = Date.now()
 client.query(

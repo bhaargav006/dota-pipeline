@@ -60,3 +60,36 @@ client.query(
     (ret) => console.log(ret),
     (err) => console.log(err)
 )
+
+// Matches by Timestamp
+client.query(
+    q.CreateIndex({
+        name: 'match_by_ts',
+        source: q.Collection('matches'),
+        values: [{ field: ['data', 'start_time'] }, { field: ['ref'] }]
+        
+    })
+).then(
+    (ret) => console.log(ret),
+    (err) => console.log(err)
+)
+
+// Temporal Heroes
+client.query(
+    q.CreateIndex({
+        name: 'heroes_temporal_winrate',
+        source: q.Collection('heroes_temporal'),
+        terms: [
+            { field: ['data', 'id'] },
+            { field: ['data', 'win'] }],
+        values: [
+            { field: ['data', 'match_start_time'] }, 
+            { field: ['data', 'id'] },
+            { field: ['data', 'win'] }
+        ]
+        
+    })
+).then(
+    (ret) => console.log(ret),
+    (err) => console.log(err)
+)
