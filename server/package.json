@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
+    "faunadb": "^2.9.3",
+    "moment": "^2.24.0",
     "pusher": "^3.0.0"
   }
 }
