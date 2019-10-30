@@ -7,6 +7,9 @@ logging.basicConfig(filename=LOG_ROOT+'unique_extractor.log', level=logging.DEBU
 
 match_list = set()
 
+# Command line arguement - fetch the matchID to process
+fileName = sys.argv[1]
+
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
 
@@ -16,7 +19,7 @@ ts = sys.argv[1]
 
 logging.info(f'Process ID: {ts}: Extracting unique values')
 
-with open(DATA_ROOT + 'serial_matches_' + ts + '.log') as f:
+with open(DATA_ROOT + fileName) as f:
     match_list = f.readlines()
 
 match_list = list(filter(None, [v.rstrip() for v in match_list]))
