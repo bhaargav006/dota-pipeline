@@ -12,9 +12,11 @@ from faunadb.client import FaunaClient
 
 # System Argument ProcesName is needed - Name of process for provenance
 PROCESS_NAME = sys.argv[1]
+# PROCESS_NAME = 'test-sid'
 
 # System Argument Collection is needed - To decide which collection to persist to
 COLLECTION_NAME = sys.argv[2]
+# COLLECTION_NAME = 'matches_raw'
 
 logging.basicConfig(filename=LOG_ROOT + 'data_processor.log', level=logging.DEBUG, format='%(levelname)s:%(asctime)s %(message)s')
 logging.info(log_with_process_name(PROCESS_NAME, 'Started'))
@@ -70,6 +72,8 @@ def processMatchId(match_id):
     # Under Review
     # hero = getHeroData(match_data) 
 
+    processMatchPredictor(match_data)
+
     addProvenance(match, match_data, stage_start_time)
     
     client.query(
@@ -102,13 +106,35 @@ def addProvenance(match, match_data, stage_start_time):
     match['provenance']['dataProcessStage']['processDuration'] = (stage_end_time - stage_start_time).microseconds
     match['provenance']['dataProcessStage']['processName'] = PROCESS_NAME
 
+def processMatchPredictor(match_data):
+    players = match_data['result']['players']
+    radiant_win = match_data['result']['radiant_win']
+
+    feature_vector = []
+    for i in range(0, HERO_SIZE * 2):
+        feature_vector.append(0)
+
+    for player in players:
+        if player['player_slot'] <= 4:
+            feature_vector[player['hero_id']] = 1
+        else:
+            feature_vector[HERO_SIZE + player['hero_id']] = 1
+
+    feature_vector.append(1 if radiant_win else 0)
+
+    match_feature_data = {}  
+    match_feature_data['start_time'] = pytz.utc.localize(datetime.utcfromtimestamp(match_data['result']['start_time']))
+    match_feature_data['vector'] = feature_vector
+
+    client.query(q.create(q.collection('match_prediction'), { "data": match_feature_data }))
+
 def processTemporalHeroInformation(match_data):
     radiant_win = match_data['result']['radiant_win']
 
     players = match_data['result']['players']
     for player in players:
         win_flag = False
-        if player['player_slot'] < 4 and radiant_win:
+        if player['player_slot'] <= 4 and radiant_win:
             win_flag = True
         elif player['player_slot'] > 4 and not radiant_win:
             win_flag = True
@@ -126,7 +152,7 @@ def processHeroInformation(match_data):
     players = match_data['result']['players']
     for player in players:
         win_flag = False
-        if player['player_slot'] < 4 and radiant_win:
+        if player['player_slot'] <= 4 and radiant_win:
             win_flag = True
         elif player['player_slot'] > 4 and not radiant_win:
             win_flag = True
