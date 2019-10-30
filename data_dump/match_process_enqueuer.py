@@ -33,14 +33,14 @@ def fetch_matches_from_db(afterPtr, isFirstPage):
             all_matches = client.query(
                 q.paginate(
                     q.match(q.index("all_raw_matches")),
-                    size=100
+                    size=10000
                 )
             )
         else:
             all_matches = client.query(
                 q.paginate(
                     q.match(q.index("all_raw_matches")),
-                    size=100,
+                    size=10000,
                     after=afterPtr
                 )
             )
