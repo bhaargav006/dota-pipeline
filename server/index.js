@@ -1,4 +1,4 @@
-import { data_processed_per_second, fetch_per_second_processes } from './src/real_time_data'
+import { data_processed_per_second, fetch_per_second_processes, total_match_count } from './src/real_time_data'
 
 const express = require('express');
 const faunadb = require('faunadb');
@@ -24,30 +24,27 @@ const logger = winston.createLogger({
 
 const app = express();
 
-const PORT = 4000 || process.env.SERVER_PORT
+const PORT = 4000
 
 // Declare variables
 
 const channels_client = new Pusher({
-  appId: process.env.PUSHER_APP_ID,
-  key: process.env.PUSHER_KEY,
-  secret: process.env.PUSHER_SECRET,
-  cluster: process.env.PUSHER_APP_CLUSTER,
+  appId: '889880',
+  key: 'd548e35711c3a1082e31',
+  secret: '1e3ba2961897e1e2255e',
+  cluster: 'us2',
   encrypted: true
 });
 
 
-// Per second jobs are added here
-setTimeout(function () {
-  fetch_per_second_processes();
-}, 1000)
-
-
 app.get('/', function(req, res) {
-  channels_client.trigger('my-channel', 'my-event', {
-    "message": data_processed_per_second
-  });
-  res.status(200).send('Message Sent!');
+  setInterval(() => {
+    channels_client.trigger('my-channel', 'my-event', {
+      "match_count": total_match_count,
+      "data_processed_per_second": data_processed_per_second
+    });
+  }, 1000)
+  res.status(200).send('Real time event started!');
 });
 
 app.listen(PORT, function() {
