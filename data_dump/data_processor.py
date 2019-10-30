@@ -146,7 +146,7 @@ def processHeroInformation(match_data):
         hero_data = client.query(
             q.get(
                 q.ref(
-                    q.Collection('heroes'),
+                    q.collection('heroes'),
                     player['hero_id']
                 )
             )
@@ -162,7 +162,7 @@ def processHeroInformation(match_data):
         hero_data = client.query(
             q.update(
                 q.ref(
-                    q.Collection('heroes'),
+                    q.collection('heroes'),
                     player['hero_id']
                 )
             )
@@ -206,7 +206,7 @@ def updatePairInformationForTeam(hero_ids, team_win):
             hero_data = client.query(
                 q.get(
                     q.ref(
-                        q.Collection('hero_pairs'),
+                        q.collection('hero_pairs'),
                         key
                     )
                 )
@@ -218,7 +218,7 @@ def updatePairInformationForTeam(hero_ids, team_win):
             client.query(
                 q.update(
                     q.ref(
-                        q.Collection('hero_pairs'),
+                        q.collection('hero_pairs'),
                         key
                     )
                 )
