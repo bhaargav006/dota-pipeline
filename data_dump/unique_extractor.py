@@ -11,7 +11,7 @@ match_list = set()
 fileName = sys.argv[1]
 
 publisher = pubsub_v1.PublisherClient()
-topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
+topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME + '-new')
 
 futures = dict()
 
