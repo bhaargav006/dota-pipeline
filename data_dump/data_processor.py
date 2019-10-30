@@ -314,6 +314,14 @@ def processMatchDuration(match_data, count):
             'no-nothing'
         )
     )
+    
+    client.query(
+        q.if_(
+            q.lt(client.query(q.select(['data', 'data'], q.get(q.ref(q.collection('match_aggregate_info'), getIntValue('max_match_duration'))))), match_duration),
+            q.update(q.ref(q.collection('match_aggregate_info'), getIntValue('max_match_duration')), { "data": { "data": match_duration } }),
+            'no-nothing'
+        )            
+    )
 
     client.query(
         q.let(
