@@ -6,6 +6,16 @@ var PORT = 4000;
 
 var Pusher = require('pusher');
 
+var process_per_second = []
+
+setTimeout(function () {
+  if (process_per_second.length === 10) {
+    process_per_second.shift()
+  }
+  var process_timing = 0;
+  process_per_second.push(process_timing);
+}, 1000)
+
 var channels_client = new Pusher({
   appId: '889880',
   key: 'd548e35711c3a1082e31',
@@ -16,7 +26,7 @@ var channels_client = new Pusher({
 
 app.get('/', function(req, res) {
   channels_client.trigger('my-channel', 'my-event', {
-    "message": "hello world"
+    "message": last_10_matches
   });
   res.status(200).send('Message Sent!');
 });
