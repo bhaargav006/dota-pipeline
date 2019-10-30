@@ -6,4 +6,3 @@ venv/
 data_dump/access-log
 big_data.pem
 .idea/*
-/dashboard/node_modules
