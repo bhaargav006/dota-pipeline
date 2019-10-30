@@ -26,12 +26,12 @@ import UserProfile from "views/UserProfile.jsx";
 
 var routes = [
   {
-    path: "/dashboard",
-    name: "Dashboard",
+    path: "/",
+    name: "",
     rtlName: "لوحة القيادة",
     icon: "tim-icons icon-chart-pie-36",
     component: Dashboard,
-    layout: "/admin"
+    layout: "/"
   },
   {
     path: "/icons",
