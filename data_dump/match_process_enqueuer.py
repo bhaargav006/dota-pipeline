@@ -53,9 +53,8 @@ def fetch_matches_from_db(afterPtr, isFirstPage):
             match_ids.append(match_id)
 
         enqueue_match_ids(match_ids)
-
-        all_matches_after = all_matches['after']
-        if all_matches_after:
+        if 'after' in all_matches:
+            all_matches_after = all_matches['after']
             fetch_matches_from_db(all_matches_after, False)
     except Exception as e:
         logging.error(f'Error occurred {str(e)}')
