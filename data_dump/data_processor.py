@@ -131,46 +131,29 @@ def processHeroInformation(match_data):
         elif player['player_slot'] > 4 and not radiant_win:
             win_flag = True
 
+        hero_data = client.query(
+            q.get(
+                q.ref(
+                    q.Collection('heroes'), 
+                    player['hero_id']
+                )
+            )
+        )
+
         if win_flag:
-            client.query(
-                q.let(
-                    { 
-                        'countCurrVal': q.select(['data', 'games'], q.get(q.ref(q.collection('heroes'), player['hero_id']))),
-                        'winCurrVal': q.select(['data', 'wins'], q.get(q.ref(q.collection('heroes'), player['hero_id']))) 
-                    },
-                    q.update(
-                        q.ref(
-                            q.collection('heroes'), 
-                            player['hero_id']
-                        ), 
-                        {
-                            "data": { 
-                                "games": q.add(1, q.var('countCurrVal')),
-                                "wins": q.add(1, q.var('winCurrVal'))
-                            }
-                        }
-                    )
-                )
-            )
+            hero_data['wins'] += 1
+            hero_data['games'] += 1
         else:
-            client.query(
-                q.let(
-                    { 
-                        'countCurrVal': q.select(['data', 'games'], q.get(q.ref(q.collection('heroes'), player['hero_id'])))
-                    },
-                    q.update(
-                        q.ref(
-                            q.collection('heroes'), 
-                            player['hero_id']
-                        ), 
-                        {
-                            "data": { 
-                                "games": q.add(1, q.var('countCurrVal'))
-                            }
-                        }
-                    )
+            hero_data['games'] += 1
+
+        hero_data = client.query(
+            q.update(
+                q.ref(
+                    q.Collection('heroes'), 
+                    player['hero_id']
                 )
             )
+        )
         
 
 def getHeroData(match_data):
