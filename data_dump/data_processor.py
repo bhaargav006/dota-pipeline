@@ -19,9 +19,9 @@ PROCESS_NAME = sys.argv[1]
 COLLECTION_NAME = sys.argv[2]
 # COLLECTION_NAME = 'matches_raw'
 
-logging.basicConfig(filename='data_processor.log', level=logging.DEBUG,
+logging.basicConfig(filename=LOG_ROOT + 'data_processor.log', level=logging.DEBUG,
                     format='%(levelname)s:%(asctime)s %(message)s')
-print(log_with_process_name(PROCESS_NAME, 'Started'))
+logging.info(log_with_process_name(PROCESS_NAME, 'Started'))
 
 subscriber = pubsub_v1.SubscriberClient()
 subscription_path = subscriber.subscription_path(PROJECT_ID, DATA_SUBSCRIPTION_NAME)
@@ -41,7 +41,7 @@ def processMatchId(match_id):
             )
         )
     )
-    print('Fetching record: ', datetime.now() - startTime)
+    logging.info('Fetching record: ', datetime.now() - startTime)
 
     match_data = match_data['data']
 
@@ -50,29 +50,29 @@ def processMatchId(match_id):
 
     startTime = datetime.now()
     count = processMatchCounter()
-    print('Processing Match Counter: ', datetime.now() - startTime)
+    logging.info('Processing Match Counter: ', datetime.now() - startTime)
 
     startTime = datetime.now()
     processAggregates(match_data, count)
-    print('Processing Aggregates: ', datetime.now() - startTime)
+    logging.info('Processing Aggregates: ', datetime.now() - startTime)
 
     match = createMatchDocument(match_data)
 
     startTime = datetime.now()
     processHeroInformation(match_data)
-    print('Processing Hero Information: ', datetime.now() - startTime)
+    logging.info('Processing Hero Information: ', datetime.now() - startTime)
 
     startTime = datetime.now()
     processTemporalHeroInformation(match_data)
-    print('Processing Temporal Hero Information: ', datetime.now() - startTime)
+    logging.info('Processing Temporal Hero Information: ', datetime.now() - startTime)
 
     startTime = datetime.now()
     processHeroPairInformation(match_data)
-    print('Processing Hero Pairs: ', datetime.now() - startTime)
+    logging.info('Processing Hero Pairs: ', datetime.now() - startTime)
 
     startTime = datetime.now()
     processMatchPredictor(match_data)
-    print('Processing Match Predictor: ', datetime.now() - startTime)
+    logging.info('Processing Match Predictor: ', datetime.now() - startTime)
 
     addProvenance(match, match_data, stage_start_time)
 
@@ -268,8 +268,8 @@ def updatePairInformationForTeam(hero_ids, team_win):
             )
         )
     except Exception as e:
-        print(e)
-        print(key_list)
+        logging.info(e)
+        logging.info(key_list)
 
     hero_team_list=[]
     for hero_data in hero_data_list :
@@ -435,7 +435,7 @@ def processMatchCounter():
 
 while True:
     try:
-        print(log_with_process_name(PROCESS_NAME, 'Fetching unique match details'))
+        logging.info(log_with_process_name(PROCESS_NAME, 'Fetching unique match details'))
         response = subscriber.pull(subscription_path, max_messages=10)
 
         for message in response.received_messages:
@@ -444,12 +444,12 @@ while True:
 
             startTime = datetime.now()
             processMatchId(match_id)
-            print('Total Processing time: ', datetime.now() - startTime)
+            logging.info('Total Processing time: ', datetime.now() - startTime)
 
             ack_list = []
             ack_list.append(message.ack_id)
             subscriber.acknowledge(subscription_path, ack_list)
-            print(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
+            logging.info(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
 
     except Exception as e:
         logging.error('Exception: ', e)
