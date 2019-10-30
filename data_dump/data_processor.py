@@ -19,7 +19,7 @@ PROCESS_NAME = sys.argv[1]
 COLLECTION_NAME = sys.argv[2]
 # COLLECTION_NAME = 'matches_raw'
 
-logging.basicConfig(filename='data_processor.log', level=logging.DEBUG,
+logging.basicConfig(filename=LOG_ROOT + 'data_processor.log', level=logging.DEBUG,
                     format='%(levelname)s:%(asctime)s %(message)s')
 logging.info(log_with_process_name(PROCESS_NAME, 'Started'))
 
