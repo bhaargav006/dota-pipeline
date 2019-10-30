@@ -18,7 +18,11 @@ DATA_TOPIC_NAME = 'match-process-queue'
 DATA_SUBSCRIPTION_NAME = 'data-sub'
 
 ITEM_SIZE=290
+<<<<<<< HEAD
 HERO_SIZE=118
+=======
+HERO_SIZE=120
+>>>>>>> Feat: Adding items to hero processor
 
 KEY_1 = '068992B5AAB6A8CE6AE7FAC277B96BF4'
 KEY_2 = '83A93878A00E218F97AE4278E87C21A4'
