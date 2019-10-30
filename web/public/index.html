@@ -44,21 +44,6 @@
     <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
     <script src="https://js.pusher.com/5.0/pusher.min.js"></script>
     <title>Black Dashboard React by Creative Tim</title>
-    <script>
-
-      // Enable pusher logging - don't include this in production
-      Pusher.logToConsole = true;
-
-      var pusher = new Pusher('d548e35711c3a1082e31', {
-        cluster: 'us2',
-        forceTLS: true
-      });
-
-      var channel = pusher.subscribe('my-channel');
-      channel.bind('my-event', function(data) {
-        alert(JSON.stringify(data));
-      });
-    </script>
   </head>
   <body>
     <noscript>

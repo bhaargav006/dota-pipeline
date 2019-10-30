@@ -1,5 +1,6 @@
 import Pusher from 'pusher';
-import { get_data_processed_per_second, get_total_match_count } from './queries'
+import { get_total_match_count } from './queries'
+import moment from 'moment'
 
 export const data_processed_per_second = [];
 export let total_match_count = 0;
@@ -10,7 +11,7 @@ export function calculate_data_processed_per_second() {
     data_processed_per_second.shift()
   }
   const data_processed = total_match_count - previous_match_count;
-  data_processed_per_second.push(data_processed);
+  data_processed_per_second.push({ processed: data_processed, time: moment().format()});
 }
 
 export function fetch_match_count() {
