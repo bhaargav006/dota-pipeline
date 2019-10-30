@@ -28,25 +28,6 @@ subscription_path = subscriber.subscription_path(PROJECT_ID, DATA_SUBSCRIPTION_N
 
 client = FaunaClient(secret="secret", domain=DATABASE_URL, scheme="http", port="8443")
 
-while True:
-    try:
-        logging.info(log_with_process_name(PROCESS_NAME, 'Fetching unique match details'))
-        response = subscriber.pull(subscription_path, max_messages=NUM_MESSAGES)
-
-        for message in response.received_messages:
-            match_id = message.message.data.decode("utf-8")
-            logging.debug(log_with_process_name(PROCESS_NAME, f'Processing data record for matchID: {match_id}'))
-
-            processMatchId(match_id)
-
-            ack_list = []
-            ack_list.append(message.ack_id)
-            subscriber.acknowledge(subscription_path, ack_list)
-            logging.info(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
-
-    except Exception as e:
-        logging.error('Exception: ', e)
-
 
 def processMatchId(match_id):
     stage_start_time = pytz.utc.localize(datetime.now())
@@ -111,6 +92,7 @@ def addProvenance(match, match_data, stage_start_time):
     match['provenance']['dataProcessStage']['processDuration'] = (stage_end_time - stage_start_time).microseconds
     match['provenance']['dataProcessStage']['processName'] = PROCESS_NAME
 
+
 def processMatchPredictor(match_data):
     players = match_data['result']['players']
     radiant_win = match_data['result']['radiant_win']
@@ -127,11 +109,11 @@ def processMatchPredictor(match_data):
 
     feature_vector.append(1 if radiant_win else 0)
 
-    match_feature_data = {}  
+    match_feature_data = {}
     match_feature_data['start_time'] = pytz.utc.localize(datetime.utcfromtimestamp(match_data['result']['start_time']))
     match_feature_data['vector'] = feature_vector
 
-    client.query(q.create(q.collection('match_prediction'), { "data": match_feature_data }))
+    client.query(q.create(q.collection('match_prediction'), {"data": match_feature_data}))
 
 
 def processTemporalHeroInformation(match_data):
@@ -315,3 +297,23 @@ def processMatchCounter():
     )
 
     return getDataFromRef(resp)
+
+
+while True:
+    try:
+        logging.info(log_with_process_name(PROCESS_NAME, 'Fetching unique match details'))
+        response = subscriber.pull(subscription_path, max_messages=NUM_MESSAGES)
+
+        for message in response.received_messages:
+            match_id = message.message.data.decode("utf-8")
+            logging.debug(log_with_process_name(PROCESS_NAME, f'Processing data record for matchID: {match_id}'))
+
+            processMatchId(match_id)
+
+            ack_list = []
+            ack_list.append(message.ack_id)
+            subscriber.acknowledge(subscription_path, ack_list)
+            logging.info(log_with_process_name(PROCESS_NAME, f'Acknowledged: {message.ack_id}'))
+
+    except Exception as e:
+        logging.error('Exception: ', e)
