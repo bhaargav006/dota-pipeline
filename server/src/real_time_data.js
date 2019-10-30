@@ -1,5 +1,6 @@
 import { get_total_match_count } from './queries'
 import moment from 'moment'
+const Pusher = require('pusher');
 
 export const data_processed_per_second = [];
 export let total_match_count = 0;
@@ -15,11 +16,24 @@ export function calculate_data_processed_per_second() {
   }
 }
 
+const channels_client = new Pusher({
+  appId: '889880',
+  key: 'd548e35711c3a1082e31',
+  secret: '1e3ba2961897e1e2255e',
+  cluster: 'us2',
+  encrypted: true
+});
+
+
 export function fetch_match_count() {
   get_total_match_count().then(count => {
     previous_match_count = total_match_count;
     total_match_count = count;
     calculate_data_processed_per_second();
+    channels_client.trigger('my-channel', 'my-event', {
+      "match_count": total_match_count,
+      "data_processed_per_second": data_processed_per_second
+    });
   });
 }
 // Per second jobs are added here
