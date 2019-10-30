@@ -10,7 +10,7 @@ while True:
         if response.status_code == 200:
             try:
                 response_json = response.json()
-                f = open(DATA_ROOT+'matches.log', 'a+')
+                f = open(DATA_ROOT+'serial_matches.log', 'a+')
                 f.write("\n")
                 matches = response_json['result']['matches']
                 f.write("\n".join(map(lambda t: str(t['match_id']), matches)))
