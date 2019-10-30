@@ -32,3 +32,7 @@ export const get_data_processed_per_second = (previous_match_count) => {
     }))
   }
 }
+
+export const get_min_match_duration = () => {
+
+}

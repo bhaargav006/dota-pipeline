@@ -16,12 +16,14 @@
 
 */
 import React from "react";
+import { Client, query } from "faunadb"
 // nodejs library that concatenates classes
 import classNames from "classnames";
 // react plugin used to create charts
 import { Line, Bar } from "react-chartjs-2";
 import Pusher from 'pusher-js';
 import moment from 'moment';
+import faunadb from 'faunadb';
 
 // reactstrap components
 import {
@@ -52,6 +54,16 @@ import {
   chartExample4
 } from "variables/charts.jsx";
 
+const client = new Client({ secret: 'secret', domain: '54.245.218.63', scheme: 'http', port: '8443'});
+
+function get_int_value_from_key(key) {
+  let sum = 0;
+  for (let i=0; i<key.length;i++) {
+    sum += key.charCodeAt(i)
+  }
+  return sum;
+}
+
 class Dashboard extends React.Component {
 
   componentDidMount () {
@@ -69,11 +81,44 @@ class Dashboard extends React.Component {
         })
       }
     });
+
+    setTimeout(() => {
+      client.query(
+        query.Get(
+          query.Ref(
+            query.Collection('match_aggregate_info'),
+            get_int_value_from_key('min_match_duration')
+          )
+        )
+      ).then(
+        (response) => {
+          this.setState({
+            min_match_duration: response['data']['data']
+          })
+        }
+      )
+      client.query(
+        query.Get(
+          query.Ref(
+            query.Collection('match_aggregate_info'),
+            get_int_value_from_key('max_match_duration')
+          )
+        )
+      ).then(
+        (response) => {
+          this.setState({
+            max_match_duration: response['data']['data']
+          })
+        }
+      )
+    }, 5000)
   }
 
   state = {
     matchCount: 0,
-    dataProcessedPerSecond: []
+    dataProcessedPerSecond: [],
+    min_match_duration: 0,
+    max_match_duration: 0
   }
 
   render() {
@@ -104,6 +149,12 @@ class Dashboard extends React.Component {
               </Card>
             </Col>
           </Row>
+          <Col lg="12" className={'main-heading'}>
+            Min Match Duration {this.state.min_match_duration} minutes
+          </Col>
+          <Col lg="12" className={'main-heading'}>
+            Max Match Duration {this.state.max_match_duration} minutes
+          </Col>
         </div>
       </>
     );
