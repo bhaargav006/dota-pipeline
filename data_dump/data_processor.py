@@ -41,7 +41,7 @@ def processMatchId(match_id):
             )
         )
     )
-    logging.info('Fetching record: ', datetime.now() - startTime)
+    logging.info(log_with_process_name(PROCESS_NAME, f'Fetching record: {datetime.now() - startTime}'))
 
     match_data = match_data['data']
 
@@ -50,41 +50,38 @@ def processMatchId(match_id):
 
     startTime = datetime.now()
     count = processMatchCounter()
-    logging.info('Processing Match Counter: ', datetime.now() - startTime)
 
     startTime = datetime.now()
     processAggregates(match_data, count)
-    logging.info('Processing Aggregates: ', datetime.now() - startTime)
 
     match = createMatchDocument(match_data)
 
     startTime = datetime.now()
     processHeroInformation(match_data)
-    logging.info('Processing Hero Information: ', datetime.now() - startTime)
 
     startTime = datetime.now()
     processTemporalHeroInformation(match_data)
-    logging.info('Processing Temporal Hero Information: ', datetime.now() - startTime)
 
     startTime = datetime.now()
     processHeroPairInformation(match_data)
-    logging.info('Processing Hero Pairs: ', datetime.now() - startTime)
 
     startTime = datetime.now()
     processMatchPredictor(match_data)
-    logging.info('Processing Match Predictor: ', datetime.now() - startTime)
 
     addProvenance(match, match_data, stage_start_time)
 
-    client.query(
-        q.create(
-            q.ref(
-                q.collection('matches'), match_data['result']['match_id']
-            ),
-            {"data": match}
+    try:
+        client.query(
+            q.create(
+                q.ref(
+                    q.collection('matches'), match_data['result']['match_id']
+                ),
+                {"data": match}
+            )
         )
-    )
-
+    except Exception as e:
+        logging.error(log_with_process_name(PROCESS_NAME, str(e) + ' for ' + str(match_data['result']['match_id'])))
+ 
 
 def createMatchDocument(match_data):
     match = {}
@@ -444,7 +441,7 @@ while True:
 
             startTime = datetime.now()
             processMatchId(match_id)
-            logging.info('Total Processing time: ', datetime.now() - startTime)
+            logging.info(log_with_process_name(PROCESS_NAME, f'Total Processing time: {datetime.now() - startTime}'))
 
             ack_list = []
             ack_list.append(message.ack_id)
