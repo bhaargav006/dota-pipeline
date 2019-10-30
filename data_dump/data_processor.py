@@ -206,7 +206,7 @@ def updatePairInformationForTeam(hero_ids, team_win):
             hero_data = client.query(
                 q.get(
                     q.ref(
-                        q.Collection('hero_pair'),
+                        q.Collection('hero_pairs'),
                         key
                     )
                 )
@@ -218,7 +218,7 @@ def updatePairInformationForTeam(hero_ids, team_win):
             client.query(
                 q.update(
                     q.ref(
-                        q.Collection('hero_pair'),
+                        q.Collection('hero_pairs'),
                         key
                     )
                 )
