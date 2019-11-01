@@ -197,6 +197,10 @@ def processHeroInformation(match_data):
         else:
             data['games'] += 1
 
+        for player in players:
+            if player['hero_id'] == data['id']:
+                getItemsData(player, data)
+
         update_info = {}
         update_info['ref'] = ref
         update_info['data'] = data
