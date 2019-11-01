@@ -7,10 +7,6 @@ DATABASE_URL = '54.245.218.63'
 console.log('Node.js code is now running!')
 var client = new faunadb.Client({ secret: 'secret', domain: DATABASE_URL, scheme: 'http', port: '8443'});
 
-// ## WIP
-// var startTime = Date.now()
-// client.query(q.Max(q.Match(q.Index('matches_duration')))).then((ret) => console.log(ret))
-
 // Query Match Duration
 var startTime = Date.now()
 client.query(
@@ -147,6 +143,49 @@ client.query(
     (ret) => console.log('Overall win-rate of a hero: ', ret),
     (err) => console.log(err)
 )
+
+// Preferred Items for a hero
+var hero_id = 47
+var top_how_many = 2
+
+client.query(
+    q.Get(
+        q.Ref(
+            q.Collection('heroes'),
+            hero_id
+        )
+    )
+).then(
+    (ret) => {
+        item_data = ret['data']['items']
+        item_list = []
+
+        for (var i = 1; i<item_data.length; i++) {
+            item_dict = {}
+
+            item_dict.item_id = i
+            item_dict.item_count = item_data[i]
+
+            item_list.push(item_dict)
+        }
+
+        item_list.sort(function(x, y) {
+            if (x.item_count > y.item_count) {
+                return -1;
+            }
+            if (x.item_count < y.item_count) {
+                return 1;
+        }
+            return 0;
+        })
+
+        console.log(item_list)
+
+        console.log('Top Item Preferrences: ', item_list.slice(0, top_how_many))
+    },
+    (err) => console.log(err)
+)
+
 
 // Count of records
 var startTime = Date.now()
