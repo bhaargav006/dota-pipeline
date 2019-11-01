@@ -2,6 +2,6 @@
 
 ## Authors
 1. Bhaargav Sriraman
-1. Prabjoth Singh Rai
+1. Prabhjot Singh Rai
 1. Suresh Siddharth
 1. Vishwesh Mishra
