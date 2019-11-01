@@ -342,6 +342,7 @@ def checkMatchAbandoned(match_data):
 
 def processAggregates(match_data, count):
     match_duration = match_data['result']['duration']
+    first_blood_time = match_data['result']['first_blood_time']
 
     aggregate_info_list = client.query(
         q.map_(
@@ -391,7 +392,7 @@ def processAggregates(match_data, count):
         
         if 'id='+str(getIntValue('avg_first_blood_time')) in str(ref):
             new_data = {}
-            new_data['data'] = (data['data'] * (count -1) + match_duration)/count
+            new_data['data'] = (data['data'] * (count -1) + first_blood_time)/count
             new_aggregate['data'] = new_data
             new_aggregate_list.append(new_aggregate)
 
