@@ -1,10 +1,11 @@
-import logging, requests, datetime, json, pytz
+import logging, requests, json, pytz
 
 from library.constants import GET_MATCH_DETAILS, DATABASE_URL, PROJECT_ID, TOPIC_NAME, DATA_TOPIC_NAME, LOG_ROOT, DATA_ROOT
 from library.helpers import log_with_process_name
 
 from google.cloud import pubsub_v1
 
+from datetime import datetime
 from faunadb import query as q
 from faunadb.objects import Ref
 from faunadb.client import FaunaClient
@@ -30,7 +31,7 @@ def getMatchDetails(matchID, process_name, key, collection_name, stage_start_tim
                 addProvenance(responseJson, startTime, endTime, process_name, stage_start_time)
                 writeDataToDatabase(responseJson, matchID, process_name, collection_name)
 
-                publishMatchIdToQueue(matchID)
+                publishMatchIdToQueue(process_name, matchID)
 
                 logging.info(log_with_process_name(process_name, f'Successfully written match details for match {matchID}'))
 
@@ -48,12 +49,12 @@ def getMatchDetails(matchID, process_name, key, collection_name, stage_start_tim
     return
 
 
-def publishMatchIdToQueue(matchID):
+def publishMatchIdToQueue(process_name, matchID):
     data = matchID
     publisher.publish(data_topic_path, data=data.encode('utf-8'))
+    logging.info(log_with_process_name(process_name, f'Published match: {data} to data process queue'))
 
 def writeDataToDatabase(responseJson, matchID, process_name, collection_name):
-    logging.debug(log_with_process_name(process_name, f'Persisting {responseJson} to database'))
     try:
         client.query(
             q.create(
