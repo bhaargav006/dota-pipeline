@@ -54,3 +54,23 @@ def queryHeroPair(hero_id, n):
         print(hero_team_list[i]['win_rate'])
 
 
+def queryItemList(hero_id, n):
+    item_data = client.query(
+        q.get(
+            q.ref(q.collection("heroes"),
+                  hero_id
+                  )
+        )
+    )
+    item_data = item_data['data']['items']
+    item_list = []
+    for i in range(1, len(item_data)):
+        item_dict = {'item_id': i, 'item_count': item_data[i]}
+        item_list.append(item_dict)
+
+    item_list = sorted(item_list, key=lambda i: i['item_count'], reverse=True)
+
+    for i in range(0, n):
+        print(item_list[i]['item_id'])
+        print(item_list[i]['item_count'])
+
