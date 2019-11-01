@@ -1,7 +1,6 @@
-import calendar, time, logging, os, json, sys
+import logging
 
-from library.constants import LOG_ROOT, PROJECT_ID, DATABASE_URL
-from library.helpers import log_with_process_name
+from library.constants import LOG_ROOT, DATABASE_URL
 
 from faunadb import query as q
 from faunadb.client import FaunaClient
