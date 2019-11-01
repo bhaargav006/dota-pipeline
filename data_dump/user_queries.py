@@ -48,10 +48,6 @@ def getTopHeroPairs(hero_id, n):
 
         hero_team_list = sorted(hero_team_list, key=lambda i: i['win_rate'], reverse=True)
 
-        for i in range(0, n):
-            print(hero_team_list[i]['partner_id'])
-            print(hero_team_list[i]['win_rate'])
-
         logging.info('Returning from the function getTopHeroPairs')
         return hero_team_list[0: n]
 
@@ -80,10 +76,6 @@ def getTopItems(hero_id, n):
             item_list.append(item_dict)
 
         item_list = sorted(item_list, key=lambda i: i['item_count'], reverse=True)
-
-        for i in range(0, n):
-            print(item_list[i]['item_id'])
-            print(item_list[i]['item_count'])
 
         logging.info('Returning from the function getTopItems')
         return item_list[0:n]
