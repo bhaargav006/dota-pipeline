@@ -11,6 +11,7 @@ client = FaunaClient(secret="secret", domain=DATABASE_URL, scheme="http", port="
 logging.basicConfig(filename=LOG_ROOT + 'user_queries.log', level=logging.DEBUG,
                     format='%(levelname)s:%(asctime)s %(message)s')
 
+
 def queryHeroPair(hero_id, n):
     key_list = []
     id_list = []
@@ -36,12 +37,9 @@ def queryHeroPair(hero_id, n):
     except Exception as e:
         print(e)
 
-    print(len(key_list), len(id_list), len(hero_data_list))
-
     hero_team_list = []
     for i in range(0, len(hero_data_list)):
-        hero_team_dictionary = {}
-        hero_team_dictionary['partner_id'] = id_list[i]
+        hero_team_dictionary = {'partner_id': id_list[i]}
         if hero_data_list[i]['data']['games'] > 0:
             hero_team_dictionary['win_rate'] = format(
                 hero_data_list[i]['data']['wins'] / hero_data_list[i]['data']['games'], '.4f')
@@ -54,4 +52,5 @@ def queryHeroPair(hero_id, n):
     for i in range(0, n):
         print(hero_team_list[i]['partner_id'])
         print(hero_team_list[i]['win_rate'])
-        
+
+
