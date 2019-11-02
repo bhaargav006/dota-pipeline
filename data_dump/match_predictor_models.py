@@ -24,8 +24,8 @@ lastPage = sys.argv[2]
 def extractMatchPredictionDataFromDB():
     try:
         logging.info(f'[START] Extracting Match prediction data ref ids')
-        if firstPage > lastPage:
-            raise ValueError("First page needs to be less than or equal to the last page!!")
+        if firstPage > lastPage or firstPage > 1:
+            raise ValueError("First page needs to be 1 and less than or equal to the last page!!")
 
         matchPreds = []
         pred_ids = []
