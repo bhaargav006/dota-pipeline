@@ -73,11 +73,19 @@ class Dashboard extends React.Component {
     });
 
     const channel = pusher.subscribe('my-channel');
-    channel.bind('my-event', (data) => {
+    channel.bind('per-second-job', (data) => {
       if (data) {
         this.setState({
           matchCount: data['match_count'],
           dataProcessedPerSecond: data['data_processed_per_second'].map(d => ({ ...d, time: moment(d.time).format('HH:mm:ss')}))
+        })
+      }
+    });
+    channel.bind('per-five-second-job', (data) => {
+      if (data) {
+        this.setState({
+          maxMatchDuration: data['max_match_duration'],
+          meanMatchDuration: data['mean_match_duration']
         })
       }
     });
@@ -87,7 +95,9 @@ class Dashboard extends React.Component {
     matchCount: 0,
     dataProcessedPerSecond: [],
     min_match_duration: 0,
-    max_match_duration: 0
+    max_match_duration: 0,
+    maxMatchDuration: 0,
+    meanMatchDuration: 0
   }
 
   render() {
@@ -122,12 +132,12 @@ class Dashboard extends React.Component {
           </Row>
           <Col lg="12" className={'main-heading'}>
             <h3>
-              Max Match Duration: {172} minutes and {11} seconds
+              Max Match Duration: {this.state.maxMatchDuration}
             </h3>
           </Col>
           <Col lg="12" className={'main-heading'}>
             <h3>
-              Mean match duration: {39} minutes and 6 seconds
+              Mean match duration: {this.state.meanMatchDuration}
             </h3>
           </Col>
         </div>

@@ -33,6 +33,30 @@ export const get_data_processed_per_second = (previous_match_count) => {
   }
 }
 
-export const get_min_match_duration = () => {
+export const get_mean_match_duration = () => new Promise((resolve, reject) => {
+  client.query(
+    query.Get(
+      query.Ref(
+        query.Collection('match_aggregate_info'),
+        2002
+      )
+    )
+  ).then(
+    (ret) => resolve((ret.data.data / 60).toFixed(2)),
+    reject
+  )
+})
 
-}
+export const get_max_match_duration = () => new Promise((resolve, reject) => {
+  client.query(
+    query.Get(
+      query.Ref(
+        query.Collection('match_aggregate_info'),
+        1911
+      )
+    )
+  ).then(
+    (ret) => resolve((ret.data.data / 60).toFixed(2)),
+    reject
+  )
+})
