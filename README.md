@@ -19,4 +19,4 @@ This project’s objective is to design and develop a system that can take a loo
   4. Querying DB : JavaScript
 
 ## Additional Information 
-Read the final documentation to get information about the project in detail. 
+Refer the final documentation to get detailed information about the project.
