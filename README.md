@@ -15,8 +15,9 @@ This project’s objective is to design and develop a system that can take a loo
 
   1. Data Source : Steam API
   2. NoSQL Tech Used : FaunaDB
-  3. Fetching and processing data : Python 
-  4. Querying DB : JavaScript
+  3. Message Broker : Google PubSub
+  4. Fetching and processing data : Python 
+  5. Querying DB : JavaScript
 
 ## Additional Information 
 Refer the final documentation to get detailed information about the project.
