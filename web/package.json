@@ -6,7 +6,7 @@
   "dependencies": {
     "@types/react": "16.4.16",
     "bootstrap": "4.3.1",
-    "chart.js": "^2.7.2",
+    "chart.js": "^2.9.4",
     "classnames": "2.2.6",
     "faunadb": "^2.9.3",
     "gh-pages": "^2.1.1",
